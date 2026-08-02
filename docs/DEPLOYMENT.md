@@ -19,6 +19,12 @@ window.WORKPLAN_CONFIG = {
 
 `anon public key` 可以出现在前端；`service_role key` 和 OpenAI API Key 不能出现在前端。
 
+## A.1 开启匿名访问
+
+当前工作台不显示登录界面，而是使用 Supabase Anonymous Sign-ins 自动建立会话。请进入 `Authentication` → `Providers`，开启 `Anonymous Sign-ins`。
+
+匿名数据只绑定当前浏览器；清除浏览器数据或更换设备后，不能找回原来的任务。
+
 ## B. 部署 AI 后端
 
 在本机安装 Supabase CLI 后，在仓库根目录运行：
@@ -75,11 +81,9 @@ https://01sy.github.io/workplan/
 
 ## E. 首次使用
 
-1. 打开网页。
-2. 输入邮箱并点击登录。
-3. 点击邮箱里的 Magic Link 返回工作台。
-4. 如果当前账号还没有任务，页面会自动导入现有工作台任务。
-5. 在 AI 工作台中输入“查一下我今天还有哪些任务”测试连接。
+1. 打开网页，等待匿名连接完成。
+2. 如果当前匿名会话还没有任务，页面会自动导入现有工作台任务。
+3. 在 AI 工作台中输入“查一下我今天还有哪些任务”测试连接。
 
 ## 常见问题
 
