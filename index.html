@@ -341,6 +341,7 @@
     let cloudClient = null;
     let currentSession = null;
     const aiMessages = [];
+    let loginCooldownTimer = null;
     const today = new Date();
     const localToday = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(today);
     const todayAtNoon = new Date(`${localToday}T12:00:00+08:00`);
@@ -370,6 +371,22 @@
     const mapCloudTask = (row) => ({id:row.id,title:row.title,owner:row.owner_name || '',status:row.status,priority:row.priority,kind:row.category === 'personal' ? 'personal' : 'work',start:row.start_at ? Date.parse(row.start_at) : null,due:row.due_at ? Date.parse(row.due_at) : null,done:row.completed_at ? Date.parse(row.completed_at) : null,update:row.latest_update || '',summary:row.completion_criteria || row.description || ''});
     const toCloudTask = (task) => ({title:task.title,description:task.description || '',owner_name:task.owner || '',status:task.status,priority:task.priority || '不紧急不重要',category:task.kind === 'personal' ? 'personal' : 'work',start_at:task.start ? new Date(task.start).toISOString() : null,due_at:task.due ? new Date(task.due).toISOString() : null,completed_at:task.done ? new Date(task.done).toISOString() : null,latest_update:task.update || '',completion_criteria:task.summary || '',source_record_id:task.id});
     const setCloudStatus = (text, connected = false) => { $('aiStatus').textContent = text; $('aiStatus').classList.toggle('connected', connected); };
+    const startLoginCooldown = (cooldownUntil = Date.now() + 60000) => {
+      const until = cooldownUntil;
+      localStorage.setItem('workplanLoginCooldownUntil', String(until));
+      clearInterval(loginCooldownTimer);
+      const update = () => {
+        const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
+        if (!remaining) { clearInterval(loginCooldownTimer); $('loginBtn').disabled = false; $('loginBtn').textContent = '登录'; return; }
+        $('loginBtn').disabled = true; $('loginBtn').textContent = `重发 (${remaining}s)`;
+      };
+      update(); loginCooldownTimer = setInterval(update, 1000);
+    };
+    const restoreLoginCooldown = () => {
+      const until = Number(localStorage.getItem('workplanLoginCooldownUntil') || 0);
+      if (until > Date.now()) { startLoginCooldown(until); }
+      else { localStorage.removeItem('workplanLoginCooldownUntil'); }
+    };
     const renderAiMessages = () => { const node = $('aiMessages'); node.innerHTML = aiMessages.length ? aiMessages.map(item => `<div class="ai-message ${item.role}">${item.content}</div>`).join('') : '<div class="ai-empty">例如：查一下我今天还有哪些未完成任务。</div>'; node.scrollTop = node.scrollHeight; };
     const loadCloudTasks = async () => {
       const {data, error} = await cloudClient.from('tasks').select('*').is('archived_at', null).order('due_at', {ascending:true, nullsFirst:false});
@@ -453,16 +470,18 @@
         const {error} = await cloudClient.auth.signInWithOtp({email,options:{emailRedirectTo:authRedirectUrl}});
         if (error) throw error;
         $('aiHint').textContent = '登录链接已发送，请检查邮箱（包括垃圾邮件文件夹）。';
+        startLoginCooldown();
         showToast('登录链接已发送，请查看邮箱');
       } catch (error) {
         const message = error?.message || '登录请求失败';
-        const detail = /redirect|url/i.test(message) ? `登录失败：请在 Supabase Auth URL Configuration 加入 ${authRedirectUrl}` : `登录失败：${message}`;
+        const detail = /rate limit/i.test(message) ? '登录失败：邮件发送次数已达上限，请等待约 1 小时，期间不要重复点击。' : /redirect|url/i.test(message) ? `登录失败：请在 Supabase Auth URL Configuration 加入 ${authRedirectUrl}` : `登录失败：${message}`;
         $('aiHint').textContent = detail;
         showToast(detail);
       }
     });
     $('aiForm').addEventListener('submit', async (event) => { event.preventDefault(); const input = $('aiInput'); const message = input.value.trim(); if (!message) return; input.value = ''; await sendAiMessage(message); });
     $('todayStamp').textContent = new Intl.DateTimeFormat('zh-CN', {weekday:'short', month:'long', day:'numeric'}).format(today);
+    restoreLoginCooldown();
     render();
     connectCloud().catch(error => { setCloudStatus('连接失败'); $('aiHint').textContent = `Supabase 连接失败：${error.message}`; });
   </script>
