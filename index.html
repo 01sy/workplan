@@ -452,7 +452,13 @@
     $('aiForm').addEventListener('submit', async (event) => { event.preventDefault(); const input = $('aiInput'); const message = input.value.trim(); if (!message) return; input.value = ''; await sendAiMessage(message); });
     $('todayStamp').textContent = new Intl.DateTimeFormat('zh-CN', {weekday:'short', month:'long', day:'numeric'}).format(today);
     render();
-    connectCloud().catch(error => { setCloudStatus('连接失败'); $('aiHint').textContent = `Supabase 连接失败：${error.message}`; });
+    connectCloud().catch(error => {
+      cloudClient = null;
+      currentSession = null;
+      setCloudStatus('本地模式');
+      $('aiSend').disabled = true;
+      $('aiHint').textContent = error.message.includes('匿名访问未启用') ? '当前使用本地任务；如需云端同步和 AI，请在 Supabase 开启 Anonymous Sign-ins。' : `Supabase 连接失败：${error.message}`;
+    });
   </script>
 </body>
 </html>
