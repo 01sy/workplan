@@ -27,8 +27,16 @@ window.WORKPLAN_CONFIG = {
 npx supabase login
 npx supabase link --project-ref 你的项目 ID
 npx supabase secrets set OPENAI_API_KEY=你的 OpenAI API Key
+npx supabase secrets set OPENAI_BASE_URL=https://api.openai.com/v1
 npx supabase secrets set OPENAI_MODEL=gpt-4.1-mini
 npx supabase functions deploy ai-chat
+```
+
+如果使用 OpenAI 兼容服务，把 `OPENAI_BASE_URL` 改为服务商提供的 `/v1` 地址，并把 `OPENAI_MODEL` 改为该服务商实际支持的模型。例如：
+
+```bash
+npx supabase secrets set OPENAI_BASE_URL=https://你的服务商域名/v1
+npx supabase secrets set OPENAI_MODEL=服务商支持的模型名
 ```
 
 部署完成后，Edge Function URL 是：
@@ -79,4 +87,3 @@ https://01sy.github.io/workplan/
 - AI 不能用：检查 Edge Function 是否部署、`AI_FUNCTION_URL` 是否正确、OpenAI API Key 是否配置为 Secret。
 - 登录后没有任务：确认 `schema.sql` 已执行，并在浏览器刷新页面。
 - 不要把 `OPENAI_API_KEY`、Supabase `service_role key` 提交到 GitHub。
-
