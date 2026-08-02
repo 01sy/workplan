@@ -365,6 +365,7 @@
     const timelineItem = (task) => { const value = progressValue(task); const overdue = isOverdue(task); return `<div class="timeline-item ${isDone(task) ? 'is-done' : ''} ${overdue ? 'is-overdue' : ''} ${task.kind === 'personal' ? 'is-personal' : ''}"><div class="timeline-item-title">${task.title}</div><div class="timeline-item-meta"><span>${task.kind === 'personal' ? '生活安排' : task.owner}</span><strong>${overdue ? '已逾期' : value + '%'}</strong></div><div class="timeline-bar"><i style="width:${value}%"></i></div></div>`; };
     const showToast = (message) => { const node = $('toast'); node.textContent = message; node.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => node.classList.remove('show'), 2400); };
     const config = window.WORKPLAN_CONFIG || {};
+    const authRedirectUrl = (() => { const url = new URL(window.location.href); url.search = ''; url.hash = ''; return url.toString(); })();
     const cloudReady = () => Boolean(window.supabase && config.SUPABASE_URL && config.SUPABASE_ANON_KEY && !config.SUPABASE_URL.includes('你的项目'));
     const mapCloudTask = (row) => ({id:row.id,title:row.title,owner:row.owner_name || '',status:row.status,priority:row.priority,kind:row.category === 'personal' ? 'personal' : 'work',start:row.start_at ? Date.parse(row.start_at) : null,due:row.due_at ? Date.parse(row.due_at) : null,done:row.completed_at ? Date.parse(row.completed_at) : null,update:row.latest_update || '',summary:row.completion_criteria || row.description || ''});
     const toCloudTask = (task) => ({title:task.title,description:task.description || '',owner_name:task.owner || '',status:task.status,priority:task.priority || '不紧急不重要',category:task.kind === 'personal' ? 'personal' : 'work',start_at:task.start ? new Date(task.start).toISOString() : null,due_at:task.due ? new Date(task.due).toISOString() : null,completed_at:task.done ? new Date(task.done).toISOString() : null,latest_update:task.update || '',completion_criteria:task.summary || '',source_record_id:task.id});
@@ -444,7 +445,19 @@
     $('personSelect').addEventListener('change', (event) => { state.person = event.target.value; render(); });
     $('refreshBtn').addEventListener('click', () => { render(); showToast('统计已刷新'); });
     $('taskList').addEventListener('click', async (event) => { const button = event.target.closest('[data-action]'); if (!button) return; const task = tasks.find(item => item.id === button.dataset.id); if (!task) return; if (button.dataset.action === 'done') { const nextDone = !isDone(task); try { if (cloudClient && currentSession) { const saved = await updateCloudTask(task, {status:nextDone ? '已完成' : '待开始',completed_at:nextDone ? new Date().toISOString() : null}); tasks = tasks.map(item => item.id === task.id ? saved : item); } else { state.localDone[task.id] = nextDone; localStorage.setItem('weeklyWorkbenchDone', JSON.stringify(state.localDone)); } render(); showToast(nextDone ? '已记录为完成' : '已恢复为未完成'); } catch (error) { showToast(`保存失败：${error.message}`); } } if (button.dataset.action === 'copy') { try { await navigator.clipboard.writeText(task.update); showToast('下一步已复制'); } catch { showToast('当前浏览器不支持自动复制'); } } });
-    $('loginBtn').addEventListener('click', async () => { if (!cloudClient) { showToast('请先配置 config.js'); return; } const email = $('loginEmail').value.trim(); if (!email) { showToast('请输入邮箱'); return; } const {error} = await cloudClient.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.href}}); showToast(error ? `登录失败：${error.message}` : '登录链接已发送，请查看邮箱'); });
+    $('loginBtn').addEventListener('click', async () => {
+      if (!cloudClient) { showToast('请先配置 config.js'); return; }
+      const email = $('loginEmail').value.trim();
+      if (!email) { showToast('请输入邮箱'); return; }
+      try {
+        const {error} = await cloudClient.auth.signInWithOtp({email,options:{emailRedirectTo:authRedirectUrl}});
+        if (error) throw error;
+        showToast('登录链接已发送，请查看邮箱');
+      } catch (error) {
+        const message = error?.message || '登录请求失败';
+        showToast(/redirect|url/i.test(message) ? `登录失败：请在 Supabase Auth URL Configuration 加入 ${authRedirectUrl}` : `登录失败：${message}`);
+      }
+    });
     $('aiForm').addEventListener('submit', async (event) => { event.preventDefault(); const input = $('aiInput'); const message = input.value.trim(); if (!message) return; input.value = ''; await sendAiMessage(message); });
     $('todayStamp').textContent = new Intl.DateTimeFormat('zh-CN', {weekday:'short', month:'long', day:'numeric'}).format(today);
     render();
