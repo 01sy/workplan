@@ -167,9 +167,8 @@
     .ai-panel { padding-bottom: 15px; }
     .ai-status { color: var(--muted); font-size: 11px; }
     .ai-status.connected { color: var(--green); }
-    .ai-auth { display: flex; gap: 7px; margin-bottom: 10px; }
-    .ai-auth input, .ai-input { min-width: 0; flex: 1; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit; font-size: 12px; outline: none; }
-    .ai-auth input:focus, .ai-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(73,111,210,.12); }
+    .ai-input { min-width: 0; flex: 1; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit; font-size: 12px; outline: none; }
+    .ai-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(73,111,210,.12); }
     .small-btn { padding: 8px 10px; border: 1px solid var(--ink); border-radius: 6px; background: var(--ink); color: #fff; font-size: 12px; white-space: nowrap; }
     .small-btn:disabled { cursor: not-allowed; opacity: .45; }
     .ai-hint { margin: 0 0 10px; color: var(--muted); font-size: 11px; line-height: 1.5; }
@@ -297,8 +296,7 @@
         </div>
         <div class="panel side-panel ai-panel">
           <div class="panel-heading"><h3>AI 工作台</h3><span class="ai-status" id="aiStatus">演示模式</span></div>
-          <div class="ai-auth"><input id="loginEmail" type="email" autocomplete="email" placeholder="登录邮箱" aria-label="登录邮箱"><button class="small-btn" id="loginBtn">登录</button></div>
-          <p class="ai-hint" id="aiHint">配置 Supabase 后，可让 AI 查询和修改你的任务。</p>
+          <p class="ai-hint" id="aiHint">配置 Supabase 后，网页会自动匿名连接；匿名数据只保存在当前浏览器。</p>
           <div class="ai-messages" id="aiMessages"><div class="ai-empty">例如：查一下我今天还有哪些未完成任务。</div></div>
           <form class="ai-form" id="aiForm"><input class="ai-input" id="aiInput" placeholder="告诉 AI 你要做什么" aria-label="告诉 AI 你要做什么"><button class="small-btn" id="aiSend" type="submit" disabled>发送</button></form>
         </div>
@@ -341,7 +339,6 @@
     let cloudClient = null;
     let currentSession = null;
     const aiMessages = [];
-    let loginCooldownTimer = null;
     const today = new Date();
     const localToday = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(today);
     const todayAtNoon = new Date(`${localToday}T12:00:00+08:00`);
@@ -366,27 +363,10 @@
     const timelineItem = (task) => { const value = progressValue(task); const overdue = isOverdue(task); return `<div class="timeline-item ${isDone(task) ? 'is-done' : ''} ${overdue ? 'is-overdue' : ''} ${task.kind === 'personal' ? 'is-personal' : ''}"><div class="timeline-item-title">${task.title}</div><div class="timeline-item-meta"><span>${task.kind === 'personal' ? '生活安排' : task.owner}</span><strong>${overdue ? '已逾期' : value + '%'}</strong></div><div class="timeline-bar"><i style="width:${value}%"></i></div></div>`; };
     const showToast = (message) => { const node = $('toast'); node.textContent = message; node.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => node.classList.remove('show'), 2400); };
     const config = window.WORKPLAN_CONFIG || {};
-    const authRedirectUrl = (() => { const url = new URL(window.location.href); url.search = ''; url.hash = ''; return url.toString(); })();
     const cloudReady = () => Boolean(window.supabase && config.SUPABASE_URL && config.SUPABASE_ANON_KEY && !config.SUPABASE_URL.includes('你的项目'));
     const mapCloudTask = (row) => ({id:row.id,title:row.title,owner:row.owner_name || '',status:row.status,priority:row.priority,kind:row.category === 'personal' ? 'personal' : 'work',start:row.start_at ? Date.parse(row.start_at) : null,due:row.due_at ? Date.parse(row.due_at) : null,done:row.completed_at ? Date.parse(row.completed_at) : null,update:row.latest_update || '',summary:row.completion_criteria || row.description || ''});
     const toCloudTask = (task) => ({title:task.title,description:task.description || '',owner_name:task.owner || '',status:task.status,priority:task.priority || '不紧急不重要',category:task.kind === 'personal' ? 'personal' : 'work',start_at:task.start ? new Date(task.start).toISOString() : null,due_at:task.due ? new Date(task.due).toISOString() : null,completed_at:task.done ? new Date(task.done).toISOString() : null,latest_update:task.update || '',completion_criteria:task.summary || '',source_record_id:task.id});
     const setCloudStatus = (text, connected = false) => { $('aiStatus').textContent = text; $('aiStatus').classList.toggle('connected', connected); };
-    const startLoginCooldown = (cooldownUntil = Date.now() + 60000) => {
-      const until = cooldownUntil;
-      localStorage.setItem('workplanLoginCooldownUntil', String(until));
-      clearInterval(loginCooldownTimer);
-      const update = () => {
-        const remaining = Math.max(0, Math.ceil((until - Date.now()) / 1000));
-        if (!remaining) { clearInterval(loginCooldownTimer); $('loginBtn').disabled = false; $('loginBtn').textContent = '登录'; return; }
-        $('loginBtn').disabled = true; $('loginBtn').textContent = `重发 (${remaining}s)`;
-      };
-      update(); loginCooldownTimer = setInterval(update, 1000);
-    };
-    const restoreLoginCooldown = () => {
-      const until = Number(localStorage.getItem('workplanLoginCooldownUntil') || 0);
-      if (until > Date.now()) { startLoginCooldown(until); }
-      else { localStorage.removeItem('workplanLoginCooldownUntil'); }
-    };
     const renderAiMessages = () => { const node = $('aiMessages'); node.innerHTML = aiMessages.length ? aiMessages.map(item => `<div class="ai-message ${item.role}">${item.content}</div>`).join('') : '<div class="ai-empty">例如：查一下我今天还有哪些未完成任务。</div>'; node.scrollTop = node.scrollHeight; };
     const loadCloudTasks = async () => {
       const {data, error} = await cloudClient.from('tasks').select('*').is('archived_at', null).order('due_at', {ascending:true, nullsFirst:false});
@@ -400,16 +380,23 @@
       render();
     };
     const connectCloud = async () => {
-      if (!cloudReady()) { setCloudStatus('演示模式'); $('aiHint').textContent = '复制 config.example.js 为 config.js 并配置 Supabase 后即可登录。'; return; }
+      if (!cloudReady()) { setCloudStatus('演示模式'); $('aiHint').textContent = '配置 Supabase 后，网页会自动匿名连接。'; return; }
       cloudClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
-      const {data:{session}} = await cloudClient.auth.getSession();
-      if (session) { currentSession = session; setCloudStatus('已连接', true); $('loginEmail').value = session.user.email || ''; $('loginBtn').textContent = '已登录'; $('aiSend').disabled = !config.AI_FUNCTION_URL; await loadCloudTasks(); }
-      else { setCloudStatus('未登录'); $('aiHint').textContent = '输入邮箱，点击登录；Supabase 会发 Magic Link。'; }
-      cloudClient.auth.onAuthStateChange(async (_event, sessionValue) => { if (!sessionValue) return; currentSession = sessionValue; setCloudStatus('已连接', true); $('loginBtn').textContent = '已登录'; $('aiSend').disabled = !config.AI_FUNCTION_URL; await loadCloudTasks(); });
+      let {data:{session}} = await cloudClient.auth.getSession();
+      if (!session) {
+        const anonymous = await cloudClient.auth.signInAnonymously();
+        if (anonymous.error) throw new Error(`匿名访问未启用：${anonymous.error.message}`);
+        session = anonymous.data.session;
+      }
+      currentSession = session;
+      setCloudStatus('已连接', true);
+      $('aiSend').disabled = !config.AI_FUNCTION_URL;
+      $('aiHint').textContent = '已匿名连接；数据只绑定当前浏览器，换设备后不会自动同步。';
+      await loadCloudTasks();
     };
     const updateCloudTask = async (task, patch) => { const {data, error} = await cloudClient.from('tasks').update(patch).eq('id', task.id).select('*').single(); if (error) throw error; return mapCloudTask(data); };
     const sendAiMessage = async (message) => {
-      if (!currentSession || !config.AI_FUNCTION_URL) { showToast('请先配置 Supabase，并完成登录'); return; }
+      if (!currentSession || !config.AI_FUNCTION_URL) { showToast('云端 AI 尚未连接'); return; }
       aiMessages.push({role:'user',content:message}); renderAiMessages(); $('aiSend').disabled = true; $('aiInput').disabled = true;
       try {
         const response = await fetch(config.AI_FUNCTION_URL, {method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${currentSession.access_token}`},body:JSON.stringify({message,messages:aiMessages})});
@@ -462,26 +449,8 @@
     $('personSelect').addEventListener('change', (event) => { state.person = event.target.value; render(); });
     $('refreshBtn').addEventListener('click', () => { render(); showToast('统计已刷新'); });
     $('taskList').addEventListener('click', async (event) => { const button = event.target.closest('[data-action]'); if (!button) return; const task = tasks.find(item => item.id === button.dataset.id); if (!task) return; if (button.dataset.action === 'done') { const nextDone = !isDone(task); try { if (cloudClient && currentSession) { const saved = await updateCloudTask(task, {status:nextDone ? '已完成' : '待开始',completed_at:nextDone ? new Date().toISOString() : null}); tasks = tasks.map(item => item.id === task.id ? saved : item); } else { state.localDone[task.id] = nextDone; localStorage.setItem('weeklyWorkbenchDone', JSON.stringify(state.localDone)); } render(); showToast(nextDone ? '已记录为完成' : '已恢复为未完成'); } catch (error) { showToast(`保存失败：${error.message}`); } } if (button.dataset.action === 'copy') { try { await navigator.clipboard.writeText(task.update); showToast('下一步已复制'); } catch { showToast('当前浏览器不支持自动复制'); } } });
-    $('loginBtn').addEventListener('click', async () => {
-      if (!cloudClient) { showToast('请先配置 config.js'); return; }
-      const email = $('loginEmail').value.trim();
-      if (!email) { showToast('请输入邮箱'); return; }
-      try {
-        const {error} = await cloudClient.auth.signInWithOtp({email,options:{emailRedirectTo:authRedirectUrl}});
-        if (error) throw error;
-        $('aiHint').textContent = '登录链接已发送，请检查邮箱（包括垃圾邮件文件夹）。';
-        startLoginCooldown();
-        showToast('登录链接已发送，请查看邮箱');
-      } catch (error) {
-        const message = error?.message || '登录请求失败';
-        const detail = /rate limit/i.test(message) ? '登录失败：邮件发送次数已达上限，请等待约 1 小时，期间不要重复点击。' : /redirect|url/i.test(message) ? `登录失败：请在 Supabase Auth URL Configuration 加入 ${authRedirectUrl}` : `登录失败：${message}`;
-        $('aiHint').textContent = detail;
-        showToast(detail);
-      }
-    });
     $('aiForm').addEventListener('submit', async (event) => { event.preventDefault(); const input = $('aiInput'); const message = input.value.trim(); if (!message) return; input.value = ''; await sendAiMessage(message); });
     $('todayStamp').textContent = new Intl.DateTimeFormat('zh-CN', {weekday:'short', month:'long', day:'numeric'}).format(today);
-    restoreLoginCooldown();
     render();
     connectCloud().catch(error => { setCloudStatus('连接失败'); $('aiHint').textContent = `Supabase 连接失败：${error.message}`; });
   </script>
