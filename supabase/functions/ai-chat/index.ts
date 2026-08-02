@@ -99,6 +99,15 @@ const toolDefinitions = [
   }
 ];
 
+const chatToolDefinitions = toolDefinitions.map((tool: any) => ({
+  type: "function",
+  function: {
+    name: tool.name,
+    description: tool.description,
+    parameters: tool.parameters
+  }
+}));
+
 const systemPrompt = `你是 Workplan 个人工作台里的任务助理。
 你只能通过工具查询和修改当前用户的数据，不能编造任务状态，也不能直接执行 SQL。
 用户说“今天”“明天”“本周”时，以当前日期和 Asia/Shanghai 时区理解。
@@ -169,16 +178,21 @@ async function executeTool(name: string, args: Record<string, unknown>, supabase
 }
 
 function responseText(response: Record<string, unknown>) {
-  if (typeof response.output_text === "string") return response.output_text;
-  const output = Array.isArray(response.output) ? response.output : [];
-  return output.flatMap((item: any) => Array.isArray(item.content) ? item.content : []).filter((item: any) => item.type === "output_text").map((item: any) => item.text).join("\n");
+  const message = (response.choices as any[])?.[0]?.message;
+  return typeof message?.content === "string" ? message.content : "";
 }
 
-async function callOpenAI(input: unknown) {
-  const response = await fetch("https://api.openai.com/v1/responses", {
+async function callOpenAI(messages: unknown[]) {
+  const baseUrl = (Deno.env.get("OPENAI_BASE_URL") || "https://api.openai.com/v1").replace(/\/+$/, "");
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("OPENAI_API_KEY")}` },
-    body: JSON.stringify({ model: Deno.env.get("OPENAI_MODEL") || "gpt-4.1-mini", instructions: systemPrompt, input, tools: toolDefinitions, tool_choice: "auto" })
+    body: JSON.stringify({
+      model: Deno.env.get("OPENAI_MODEL") || "gpt-4.1-mini",
+      messages: [{ role: "system", content: systemPrompt }, ...messages],
+      tools: chatToolDefinitions,
+      tool_choice: "auto"
+    })
   });
   const body = await response.json();
   if (!response.ok) throw new Error(body?.error?.message || "OpenAI request failed");
@@ -198,18 +212,18 @@ Deno.serve(async (req) => {
     const messages = Array.isArray(body.messages) ? body.messages.slice(-20) : [];
     let response = await callOpenAI(messages);
     const toolResults: unknown[] = [];
-    const output = Array.isArray(response.output) ? response.output : [];
-    const calls = output.filter((item: any) => item.type === "function_call");
+    const assistantMessage = (response.choices as any[])?.[0]?.message;
+    const calls = Array.isArray(assistantMessage?.tool_calls) ? assistantMessage.tool_calls : [];
 
     if (calls.length) {
-      const outputs = [];
+      const outputs: any[] = [{ role: "assistant", content: assistantMessage.content || null, tool_calls: assistantMessage.tool_calls }];
       for (const call of calls) {
-        const args = JSON.parse(call.arguments || "{}");
-        const result = await executeTool(call.name, args, supabase, user.id);
-        toolResults.push({ name: call.name, result });
-        outputs.push({ type: "function_call_output", call_id: call.call_id, output: JSON.stringify(result) });
+        const args = JSON.parse(call.function?.arguments || "{}");
+        const result = await executeTool(call.function?.name, args, supabase, user.id);
+        toolResults.push({ name: call.function?.name, result });
+        outputs.push({ role: "tool", tool_call_id: call.id, content: JSON.stringify(result) });
       }
-      response = await callOpenAI([...messages, ...output, ...outputs]);
+      response = await callOpenAI([...messages, ...outputs]);
     }
 
     const reply = responseText(response) || "我已完成处理，但没有生成文字回复。";
