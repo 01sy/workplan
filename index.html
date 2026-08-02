@@ -452,10 +452,13 @@
       try {
         const {error} = await cloudClient.auth.signInWithOtp({email,options:{emailRedirectTo:authRedirectUrl}});
         if (error) throw error;
+        $('aiHint').textContent = '登录链接已发送，请检查邮箱（包括垃圾邮件文件夹）。';
         showToast('登录链接已发送，请查看邮箱');
       } catch (error) {
         const message = error?.message || '登录请求失败';
-        showToast(/redirect|url/i.test(message) ? `登录失败：请在 Supabase Auth URL Configuration 加入 ${authRedirectUrl}` : `登录失败：${message}`);
+        const detail = /redirect|url/i.test(message) ? `登录失败：请在 Supabase Auth URL Configuration 加入 ${authRedirectUrl}` : `登录失败：${message}`;
+        $('aiHint').textContent = detail;
+        showToast(detail);
       }
     });
     $('aiForm').addEventListener('submit', async (event) => { event.preventDefault(); const input = $('aiInput'); const message = input.value.trim(); if (!message) return; input.value = ''; await sendAiMessage(message); });
