@@ -3,462 +3,153 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>本周个人工作台</title>
+  <title>本周工作台</title>
   <style>
-    :root {
-      --bg: #f5f4ef;
-      --surface: #fffefa;
-      --ink: #20211f;
-      --muted: #7d807b;
-      --line: #deded5;
-      --orange: #ee7f31;
-      --orange-soft: #fff0df;
-      --blue: #496fd2;
-      --blue-soft: #eaf0ff;
-      --green: #2d9768;
-      --green-soft: #e6f5eb;
-      --red: #c9584d;
-      --red-soft: #fbe9e6;
-      --shadow: 0 18px 50px rgba(35, 36, 31, .07);
-      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      color: var(--ink);
-      background: var(--bg);
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-width: 320px; background: var(--bg); }
-    button, select { font: inherit; }
-    button { cursor: pointer; }
-    .shell { max-width: 1440px; margin: 0 auto; padding: 32px 34px 56px; }
-    .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
-    .eyebrow { display: flex; align-items: center; gap: 8px; color: var(--orange); font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
-    .eyebrow::before { content: ""; width: 22px; height: 2px; background: var(--orange); }
-    h1 { margin: 8px 0 9px; font-size: clamp(30px, 4vw, 47px); line-height: 1.06; letter-spacing: -.035em; font-weight: 700; }
-    .subtitle { margin: 0; max-width: 590px; color: var(--muted); font-size: 15px; line-height: 1.65; }
-    .top-actions { display: flex; align-items: center; gap: 12px; padding-top: 3px; }
-    .date-stamp { color: var(--muted); font-size: 13px; white-space: nowrap; }
-    .icon-btn { width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--surface); color: var(--ink); transition: .2s ease; }
-    .icon-btn:hover { border-color: var(--orange); color: var(--orange); transform: translateY(-1px); }
-    .overview { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, .65fr); gap: 18px; margin-bottom: 18px; }
-    .panel { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
-    .hero-panel { min-height: 230px; display: grid; grid-template-columns: minmax(230px, .9fr) minmax(250px, 1.1fr); gap: 24px; padding: 26px 28px; overflow: hidden; position: relative; }
-    .hero-panel::after { content: ""; position: absolute; width: 250px; height: 250px; right: -95px; bottom: -100px; border: 1px solid rgba(238, 127, 49, .22); border-radius: 50%; box-shadow: -32px -12px 0 -20px rgba(238, 127, 49, .12), -70px -28px 0 -42px rgba(238, 127, 49, .12); pointer-events: none; }
-    .section-kicker { color: var(--muted); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; }
-    .hero-panel h2 { margin: 9px 0 14px; font-size: 25px; letter-spacing: -.025em; }
-    .hero-copy { max-width: 350px; color: var(--muted); font-size: 14px; line-height: 1.7; }
-    .person-select { display: flex; align-items: center; gap: 10px; margin-top: 20px; }
-    .person-select label { color: var(--muted); font-size: 13px; }
-    select { min-width: 150px; padding: 9px 34px 9px 12px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); background: var(--surface); outline: none; }
-    select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(73,111,210,.12); }
-    .progress-wrap { align-self: center; display: grid; grid-template-columns: 142px 1fr; gap: 22px; align-items: center; }
-    .ring { width: 142px; height: 142px; display: grid; place-items: center; position: relative; }
-    .ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-    .ring .ring-bg { fill: none; stroke: var(--line); stroke-width: 11; }
-    .ring .ring-value { fill: none; stroke: var(--orange); stroke-linecap: round; stroke-width: 11; transition: stroke-dashoffset .4s ease; }
-    .ring-content { text-align: center; position: relative; }
-    .ring-value-text { display: block; font-size: 30px; font-weight: 700; letter-spacing: -.06em; }
-    .ring-label { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; }
-    .stat-list { display: grid; gap: 12px; }
-    .stat-line { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
-    .stat-line:last-child { border-bottom: 0; padding-bottom: 0; }
-    .stat-line span { color: var(--muted); font-size: 13px; }
-    .stat-line strong { font-size: 21px; }
-    .stat-line strong.orange { color: var(--orange); }
-    .stat-line strong.green { color: var(--green); }
-    .stat-line strong.blue { color: var(--blue); }
-    .focus-panel { padding: 24px 25px; }
-    .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
-    .panel-heading h3 { margin: 0; font-size: 16px; letter-spacing: -.01em; }
-    .panel-heading small { color: var(--muted); font-size: 12px; }
-    .focus-list { display: grid; gap: 13px; }
-    .focus-item { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; }
-    .focus-num { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: var(--orange-soft); color: var(--orange); font-size: 12px; font-weight: 700; }
-    .focus-item strong { display: block; margin-bottom: 4px; font-size: 13px; line-height: 1.35; }
-    .focus-item p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
-    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 5px 0 17px; }
-    .segmented { display: inline-flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 9px; background: rgba(255,254,250,.62); }
-    .segmented button { padding: 8px 13px; border: 0; border-radius: 6px; background: transparent; color: var(--muted); font-size: 13px; transition: .2s ease; }
-    .segmented button[aria-pressed="true"] { background: var(--ink); color: #fff; }
-    .toolbar-right { display: flex; align-items: center; gap: 12px; }
-    .filter-note { color: var(--muted); font-size: 13px; }
-    .timeline-panel { margin-bottom: 18px; padding: 22px 23px 20px; }
-    .timeline-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 15px; }
-    .timeline-head h3 { margin: 0 0 5px; font-size: 16px; }
-    .timeline-head p { margin: 0; color: var(--muted); font-size: 12px; }
-    .timeline-legend { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 10px; color: var(--muted); font-size: 11px; }
-    .legend-item { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
-    .legend-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-    .legend-dot.progress { background: var(--blue); }
-    .legend-dot.done { background: var(--green); }
-    .legend-dot.overdue { background: var(--red); }
-    .timeline-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
-    .timeline-day { min-height: 182px; padding: 12px 10px 10px; border: 1px solid var(--line); border-radius: 9px; background: #fcfcf7; }
-    .timeline-day.is-today { border-color: var(--orange); box-shadow: inset 0 3px 0 var(--orange); }
-    .timeline-day-head { display: flex; justify-content: space-between; align-items: baseline; gap: 5px; padding-bottom: 9px; border-bottom: 1px solid var(--line); }
-    .timeline-day-name { color: var(--muted); font-size: 11px; }
-    .timeline-day-date { font-size: 13px; font-weight: 700; }
-    .timeline-day.is-today .timeline-day-date { color: var(--orange); }
-    .timeline-day-progress { display: flex; justify-content: space-between; gap: 5px; margin: 8px 0 10px; color: var(--muted); font-size: 10px; }
-    .timeline-day-progress strong { color: var(--ink); font-size: 11px; }
-    .timeline-items { display: grid; gap: 7px; }
-    .timeline-item { padding: 8px; border: 1px solid #e7e7df; border-radius: 6px; background: var(--surface); }
-    .timeline-item.is-overdue { border-color: #f0c6bf; background: #fff9f7; }
-    .timeline-item.is-personal { border-color: #cbd6f0; background: #f7f9ff; }
-    .timeline-item-title { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; color: #464942; font-size: 11px; line-height: 1.4; }
-    .timeline-item-meta { display: flex; justify-content: space-between; gap: 5px; margin-top: 7px; color: var(--muted); font-size: 10px; }
-    .timeline-item-meta strong { color: var(--blue); font-weight: 700; }
-    .timeline-item.is-done .timeline-item-meta strong { color: var(--green); }
-    .timeline-item.is-overdue .timeline-item-meta strong { color: var(--red); }
-    .timeline-item.is-personal .timeline-item-meta strong { color: var(--blue); }
-    .timeline-bar { height: 3px; margin-top: 6px; overflow: hidden; border-radius: 8px; background: #e8e8e1; }
-    .timeline-bar i { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
-    .timeline-item.is-done .timeline-bar i { background: var(--green); }
-    .timeline-item.is-overdue .timeline-bar i { background: var(--red); }
-    .timeline-empty { padding: 21px 5px; color: var(--muted); text-align: center; font-size: 11px; }
-    .timeline-overflow { display: grid; grid-template-columns: auto 1fr; gap: 9px; align-items: start; margin-top: 10px; padding: 10px 11px; border: 1px dashed var(--line); border-radius: 8px; background: #fbfbf7; }
-    .timeline-overflow-label { padding-top: 4px; color: var(--muted); font-size: 11px; white-space: nowrap; }
-    .timeline-overflow-list { display: flex; flex-wrap: wrap; gap: 7px; }
-    .timeline-overflow-list .timeline-item { max-width: 260px; }
-    .timeline-overflow-list:empty { display: none; }
-    .tasks-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 18px; align-items: start; }
-    .task-list { display: grid; gap: 10px; }
-    .task-card { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); transition: .2s ease; overflow: hidden; }
-    .task-card:hover { border-color: #c6c6bd; box-shadow: 0 8px 24px rgba(35,36,31,.06); }
-    .task-main { display: grid; grid-template-columns: 25px minmax(0, 1fr) auto; gap: 13px; align-items: start; padding: 18px 19px 15px; }
-    .task-check { width: 22px; height: 22px; display: grid; place-items: center; border: 1.5px solid #bfc0b7; border-radius: 50%; color: transparent; background: transparent; transition: .2s ease; }
-    .task-check:hover { border-color: var(--green); color: var(--green); }
-    .task-check.done { border-color: var(--green); background: var(--green); color: white; }
-    .task-title { margin: 1px 0 8px; font-size: 15px; line-height: 1.45; font-weight: 650; }
-    .task-card.is-done .task-title { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
-    .task-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
-    .chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 5px; font-size: 11px; white-space: nowrap; }
-    .chip.owner { background: #f1f1ec; color: #555850; }
-    .chip.status-progress { background: var(--blue-soft); color: var(--blue); }
-    .chip.status-pending { background: #f1f1ec; color: #6c706a; }
-    .chip.status-done { background: var(--green-soft); color: var(--green); }
-    .chip.priority-high { background: var(--red-soft); color: var(--red); }
-    .chip.priority-mid { background: var(--orange-soft); color: #b26728; }
-    .chip.personal-chip { background: var(--blue-soft); color: var(--blue); }
-    .task-due { align-self: start; min-width: 78px; text-align: right; color: var(--muted); font-size: 12px; line-height: 1.35; }
-    .task-due strong { display: block; margin-bottom: 3px; color: var(--ink); font-size: 13px; }
-    .task-due.overdue strong { color: var(--red); }
-    .task-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 19px 17px 57px; }
-    .detail-block { min-width: 0; }
-    .detail-label { margin-bottom: 5px; color: var(--muted); font-size: 11px; letter-spacing: .04em; }
-    .detail-text { color: #4e514c; font-size: 12px; line-height: 1.6; }
-    .task-footer { display: flex; justify-content: flex-end; gap: 9px; padding: 10px 18px; border-top: 1px solid #eeeee7; background: #fbfbf6; }
-    .text-btn { padding: 5px 2px; border: 0; background: transparent; color: var(--muted); font-size: 12px; }
-    .text-btn:hover { color: var(--orange); }
-    .sidebar { display: grid; gap: 18px; }
-    .side-panel { padding: 22px 22px; }
-    .people { display: grid; gap: 12px; }
-    .person-row { display: grid; grid-template-columns: 31px 1fr auto; gap: 10px; align-items: center; }
-    .avatar { width: 31px; height: 31px; display: grid; place-items: center; border-radius: 50%; background: #e9e8e1; color: #444740; font-size: 12px; font-weight: 700; }
-    .person-row strong { display: block; font-size: 13px; }
-    .person-row small { display: block; margin-top: 2px; color: var(--muted); font-size: 11px; }
-    .person-count { color: var(--ink); font-size: 13px; font-weight: 700; }
-    .mini-bar { height: 4px; margin-top: 6px; overflow: hidden; border-radius: 10px; background: #e8e8e0; }
-    .mini-bar i { display: block; height: 100%; border-radius: inherit; background: var(--green); }
-    .reminder { border-color: #d6e0f7; background: var(--blue-soft); box-shadow: none; }
-    .reminder .panel-heading { margin-bottom: 10px; }
-    .reminder .panel-heading h3 { color: #2d4f9e; }
-    .reminder-copy { margin: 0 0 15px; color: #45609a; font-size: 13px; line-height: 1.6; }
-    .reminder-time { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid #cbd6f0; color: #2d4f9e; font-size: 13px; }
-    .reminder-time strong { font-size: 21px; letter-spacing: -.04em; }
-    .ai-panel { padding-bottom: 15px; }
-    .ai-status { color: var(--muted); font-size: 11px; }
-    .ai-status.connected { color: var(--green); }
-    .ai-input { min-width: 0; flex: 1; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font: inherit; font-size: 12px; outline: none; }
-    .ai-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(73,111,210,.12); }
-    .small-btn { padding: 8px 10px; border: 1px solid var(--ink); border-radius: 6px; background: var(--ink); color: #fff; font-size: 12px; white-space: nowrap; }
-    .small-btn:disabled { cursor: not-allowed; opacity: .45; }
-    .ai-hint { margin: 0 0 10px; color: var(--muted); font-size: 11px; line-height: 1.5; }
-    .ai-messages { display: grid; gap: 8px; max-height: 220px; overflow-y: auto; margin-bottom: 10px; padding-right: 3px; }
-    .ai-message { max-width: 92%; padding: 9px 10px; border-radius: 7px; font-size: 12px; line-height: 1.55; white-space: pre-wrap; }
-    .ai-message.assistant { justify-self: start; background: var(--blue-soft); color: #3e5795; }
-    .ai-message.user { justify-self: end; background: #f1f1ec; color: #4c504b; }
-    .ai-form { display: flex; gap: 7px; }
-    .ai-empty { padding: 10px; border: 1px dashed var(--line); border-radius: 6px; color: var(--muted); font-size: 11px; line-height: 1.5; }
-    .empty { padding: 40px 25px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); text-align: center; font-size: 13px; }
-    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 10; max-width: 320px; padding: 13px 16px; border: 1px solid var(--line); border-radius: 9px; background: var(--ink); color: #fff; box-shadow: var(--shadow); font-size: 13px; opacity: 0; transform: translateY(10px); pointer-events: none; transition: .25s ease; }
-    .toast.show { opacity: 1; transform: translateY(0); }
-    @media (max-width: 980px) {
-      .overview, .tasks-layout { grid-template-columns: 1fr; }
-      .sidebar { grid-template-columns: 1fr 1fr; }
-    }
-    @media (max-width: 680px) {
-      .shell { padding: 24px 16px 40px; }
-      .topbar { display: block; }
-      .top-actions { margin-top: 18px; justify-content: space-between; }
-      .hero-panel { grid-template-columns: 1fr; padding: 22px 20px; }
-      .progress-wrap { grid-template-columns: 120px 1fr; gap: 16px; }
-      .ring { width: 120px; height: 120px; }
-      .ring svg { width: 120px; height: 120px; }
-      .ring-value-text { font-size: 26px; }
-      .toolbar { display: block; }
-      .toolbar-right { margin-top: 11px; justify-content: space-between; }
-      .segmented { width: 100%; }
-      .segmented button { flex: 1; padding-left: 8px; padding-right: 8px; }
-      .timeline-panel { padding: 19px 16px 16px; }
-      .timeline-head { display: block; }
-      .timeline-legend { justify-content: flex-start; margin-top: 12px; }
-      .timeline-grid { grid-template-columns: 1fr; gap: 7px; }
-      .timeline-day { min-height: auto; padding: 12px; }
-      .timeline-day-head { padding-bottom: 8px; }
-      .timeline-day-progress { margin: 7px 0 8px; }
-      .timeline-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .timeline-overflow { grid-template-columns: 1fr; gap: 5px; }
-      .timeline-overflow-list .timeline-item { max-width: none; flex: 1 1 100%; }
-      .sidebar { grid-template-columns: 1fr; }
-      .task-main { grid-template-columns: 23px minmax(0, 1fr); }
-      .task-due { grid-column: 2; text-align: left; min-width: auto; }
-      .task-detail { grid-template-columns: 1fr; padding-left: 57px; }
-    }
+    :root { --bg:#f5f4ef; --surface:#fffefa; --ink:#20211f; --muted:#757871; --line:#deded5; --orange:#e8782c; --orange-soft:#fff0df; --blue:#496fd2; --blue-soft:#eaf0ff; --green:#2d9768; --green-soft:#e6f5eb; --red:#c9584d; --red-soft:#fbe9e6; --shadow:0 18px 46px rgba(35,36,31,.07); font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif; color:var(--ink); background:var(--bg); }
+    * { box-sizing:border-box; }
+    body { margin:0; min-width:320px; background:var(--bg); }
+    button,input,select,textarea { font:inherit; }
+    button { cursor:pointer; }
+    button:active { transform:translateY(1px); }
+    .shell { max-width:1480px; margin:0 auto; padding:30px 34px 56px; }
+    .topbar { display:flex; justify-content:space-between; gap:20px; align-items:flex-start; margin-bottom:26px; }
+    .eyebrow { display:flex; align-items:center; gap:8px; color:var(--orange); font-weight:700; font-size:12px; letter-spacing:.12em; }
+    .eyebrow::before { content:""; width:22px; height:2px; background:var(--orange); }
+    h1 { margin:8px 0 8px; font-size:clamp(30px,4vw,46px); line-height:1.05; letter-spacing:-.04em; }
+    .subtitle { max-width:610px; margin:0; color:var(--muted); font-size:14px; line-height:1.65; }
+    .top-actions,.week-actions,.toolbar-actions { display:flex; align-items:center; gap:9px; }
+    .date-stamp { color:var(--muted); font-size:13px; white-space:nowrap; }
+    .btn { display:inline-flex; justify-content:center; align-items:center; min-height:36px; padding:8px 12px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); font-size:13px; font-weight:600; transition:.18s ease; }
+    .btn:hover { border-color:var(--orange); color:var(--orange); }
+    .btn.primary { border-color:var(--ink); background:var(--ink); color:#fff; }
+    .btn.primary:hover { border-color:var(--orange); background:var(--orange); color:#fff; }
+    .btn.ghost { min-width:36px; padding:8px; }
+    .btn.danger:hover { border-color:var(--red); color:var(--red); }
+    .panel { border:1px solid var(--line); border-radius:14px; background:var(--surface); box-shadow:var(--shadow); }
+    .overview { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr); gap:18px; margin-bottom:18px; }
+    .hero { min-height:220px; display:grid; grid-template-columns:minmax(210px,.9fr) minmax(240px,1.1fr); gap:24px; padding:25px 28px; position:relative; overflow:hidden; }
+    .hero::after { content:""; position:absolute; width:230px; height:230px; right:-96px; bottom:-108px; border:1px solid rgba(232,120,44,.24); border-radius:50%; pointer-events:none; }
+    .section-kicker { color:var(--muted); font-size:12px; letter-spacing:.08em; }
+    .hero h2 { margin:9px 0 12px; font-size:24px; letter-spacing:-.025em; }
+    .hero-copy { margin:0; max-width:370px; color:var(--muted); font-size:14px; line-height:1.65; }
+    .person-select { display:flex; align-items:center; gap:9px; margin-top:18px; }
+    label { color:var(--muted); font-size:12px; font-weight:600; }
+    select,input,textarea { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:7px; background:#fffefa; color:var(--ink); outline:none; }
+    select:focus,input:focus,textarea:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(73,111,210,.12); }
+    .person-select select { width:150px; }
+    .progress-wrap { align-self:center; display:grid; grid-template-columns:140px 1fr; gap:21px; align-items:center; }
+    .ring { width:140px; height:140px; display:grid; place-items:center; position:relative; }
+    .ring svg { position:absolute; inset:0; transform:rotate(-90deg); }
+    .ring-bg { fill:none; stroke:var(--line); stroke-width:11; }
+    .ring-value { fill:none; stroke:var(--orange); stroke-width:11; stroke-linecap:round; transition:stroke-dashoffset .3s ease; }
+    .ring-content { position:relative; text-align:center; }
+    .ring-content strong { display:block; font-size:29px; letter-spacing:-.06em; }
+    .ring-content span { color:var(--muted); font-size:12px; }
+    .stats { display:grid; gap:12px; }
+    .stat { display:flex; align-items:baseline; justify-content:space-between; padding-bottom:9px; border-bottom:1px solid var(--line); }
+    .stat:last-child { border:0; padding:0; }.stat span { color:var(--muted); font-size:13px; }.stat strong { font-size:20px; }.green{color:var(--green)}.blue{color:var(--blue)}.orange{color:var(--orange)}
+    .focus { padding:23px 24px; }.panel-heading { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:16px; }.panel-heading h3{margin:0;font-size:16px}.panel-heading small{color:var(--muted);font-size:12px}
+    .focus-list { display:grid; gap:13px; }.focus-item{display:grid;grid-template-columns:28px 1fr;gap:10px}.focus-num{width:25px;height:25px;display:grid;place-items:center;border-radius:50%;background:var(--orange-soft);color:var(--orange);font-size:11px;font-weight:700}.focus-item strong{display:block;margin-bottom:4px;font-size:13px;line-height:1.4}.focus-item p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+    .timeline-panel { margin-bottom:18px; padding:21px 22px; overflow:hidden; }.timeline-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px}.timeline-head h3{margin:0 0 5px;font-size:16px}.timeline-head p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}.timeline-note{color:var(--muted);font-size:11px;line-height:1.45;text-align:right}
+    .timeline-scroller { overflow-x:auto; padding-bottom:4px; }.gantt { min-width:860px; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#fcfcf8; }.gantt-head,.gantt-owner-row { display:grid; grid-template-columns:126px repeat(7,minmax(96px,1fr)); }.gantt-head{background:#f7f7f1;border-bottom:1px solid var(--line)}.gantt-corner{padding:11px 12px;color:var(--muted);font-size:11px;font-weight:600}.gantt-day{min-height:54px;padding:9px 10px;border-left:1px solid var(--line);font-size:12px}.gantt-day small{display:block;color:var(--muted);font-size:10px;margin-bottom:4px}.gantt-day.today{background:var(--orange-soft);color:#9d551f}.gantt-owner-row{border-bottom:1px solid var(--line)}.gantt-owner-row:last-child{border-bottom:0}.gantt-owner{padding:15px 12px;background:#fafaf5;border-right:1px solid var(--line);font-size:13px;font-weight:700}.gantt-owner small{display:block;margin-top:4px;color:var(--muted);font-size:10px;font-weight:400}.gantt-lanes{grid-column:2/-1;display:grid;grid-template-columns:repeat(7,minmax(96px,1fr));grid-auto-rows:42px;min-height:42px;position:relative;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(14.285% - 1px),var(--line) calc(14.285% - 1px),var(--line) 14.285%)}
+    .timeline-drop{grid-row:1/-1;min-height:100%;z-index:0}.timeline-drop.drag-over{background:rgba(232,120,44,.11);outline:2px dashed var(--orange);outline-offset:-3px}.task-bar{position:relative;z-index:1;align-self:center;height:31px;margin:0 4px;padding:0 20px 0 9px;border:1px solid #b8c9ef;border-radius:6px;background:var(--blue-soft);color:#365596;font-size:11px;font-weight:650;line-height:29px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:grab;box-shadow:0 2px 5px rgba(43,74,139,.08)}.task-bar:active{cursor:grabbing}.task-bar.overdue{border-color:#efb4ac;background:var(--red-soft);color:#a7483f}.task-bar.done{border-color:#b9dfc8;background:var(--green-soft);color:#277852}.task-bar .resize{position:absolute;top:3px;right:3px;width:9px;height:23px;border-radius:3px;border-left:2px dotted currentColor;opacity:.6;cursor:ew-resize}.task-bar:hover .resize{opacity:1}.timeline-empty{grid-column:1/-1;align-self:center;padding-left:12px;color:var(--muted);font-size:11px}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:4px 0 16px}.segmented{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:9px;background:rgba(255,254,250,.65)}.segmented button{padding:8px 13px;border:0;border-radius:6px;background:transparent;color:var(--muted);font-size:13px}.segmented button[aria-pressed=true]{background:var(--ink);color:#fff}.filter-note{color:var(--muted);font-size:13px}
+    .tasks-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:18px;align-items:start}.task-list{display:grid;gap:10px}.task-card{border:1px solid var(--line);border-radius:12px;background:var(--surface);overflow:hidden;transition:.18s ease}.task-card:hover{border-color:#c7c7bd;box-shadow:0 8px 22px rgba(35,36,31,.06)}.task-main{display:grid;grid-template-columns:25px minmax(0,1fr) auto;gap:13px;align-items:start;padding:17px 18px 13px}.task-check{width:22px;height:22px;display:grid;place-items:center;border:1.5px solid #bfc0b7;border-radius:50%;background:transparent;color:transparent}.task-check.done{border-color:var(--green);background:var(--green);color:#fff}.task-title{margin:1px 0 8px;font-size:15px;line-height:1.4}.task-card.is-done .task-title{text-decoration:line-through;color:var(--muted)}.task-meta{display:flex;gap:6px;flex-wrap:wrap}.chip{padding:4px 7px;border-radius:5px;font-size:11px;white-space:nowrap}.owner{background:#f1f1ec;color:#555850}.status-progress{background:var(--blue-soft);color:var(--blue)}.status-pending{background:#f1f1ec;color:#6c706a}.status-done{background:var(--green-soft);color:var(--green)}.priority-high{background:var(--red-soft);color:var(--red)}.priority-mid{background:var(--orange-soft);color:#a85d22}.task-due{text-align:right;color:var(--muted);font-size:12px;line-height:1.35}.task-due strong{display:block;margin-bottom:3px;color:var(--ink);font-size:12px}.task-due.overdue strong{color:var(--red)}.task-details{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 18px 16px 56px}.detail-label{margin-bottom:4px;color:var(--muted);font-size:11px}.detail-text{color:#4e514c;font-size:12px;line-height:1.55}.task-footer{display:flex;justify-content:space-between;gap:9px;padding:10px 17px;border-top:1px solid #eee;padding-left:56px;background:#fbfbf6}.text-btn{padding:4px 2px;border:0;background:transparent;color:var(--muted);font-size:12px}.text-btn:hover{color:var(--orange)}.task-footer-right{display:flex;gap:12px}
+    .sidebar{display:grid;gap:18px}.side-panel{padding:21px}.people{display:grid;gap:10px}.person-row{display:grid;grid-template-columns:31px 1fr auto;gap:9px;align-items:center}.avatar{width:31px;height:31px;display:grid;place-items:center;border-radius:50%;background:#e9e8e1;color:#444740;font-weight:700;font-size:12px}.person-row strong{display:block;font-size:13px}.person-row small{display:block;margin-top:2px;color:var(--muted);font-size:11px}.person-count{font-size:12px;font-weight:700}.mini-bar{height:4px;margin-top:6px;border-radius:6px;overflow:hidden;background:#e7e7df}.mini-bar i{display:block;height:100%;background:var(--green)}.people-actions{display:flex;justify-content:flex-end;margin-top:14px}.local-panel{border-color:#d6e0f7;background:var(--blue-soft);box-shadow:none}.local-panel h3,.local-panel p,.local-panel strong{color:#345799}.local-panel p{margin:0;font-size:12px;line-height:1.6}.local-panel strong{display:block;margin-top:11px;padding-top:10px;border-top:1px solid #cbd6f0;font-size:13px}
+    dialog{width:min(620px,calc(100vw - 28px));padding:0;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 24px 70px rgba(20,21,19,.22)}dialog::backdrop{background:rgba(30,31,28,.3)}.dialog-head{display:flex;justify-content:space-between;align-items:center;padding:19px 21px;border-bottom:1px solid var(--line)}.dialog-head h3{margin:0;font-size:18px}.dialog-close{border:0;background:transparent;color:var(--muted);font-size:22px;line-height:1}.task-form,.member-form{padding:20px 21px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}.field textarea{min-height:76px;resize:vertical}.dialog-actions{display:flex;justify-content:space-between;gap:10px;margin-top:20px}.dialog-actions-right{display:flex;gap:9px}.member-list{display:grid;gap:10px;margin-top:18px}.member-edit{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}.member-empty{padding:14px;border:1px dashed var(--line);color:var(--muted);font-size:12px;text-align:center}.toast{position:fixed;right:20px;bottom:20px;z-index:10;max-width:340px;padding:12px 15px;border:1px solid var(--line);border-radius:9px;background:var(--ink);color:#fff;box-shadow:var(--shadow);font-size:13px;opacity:0;transform:translateY(9px);pointer-events:none;transition:.2s ease}.toast.show{opacity:1;transform:translateY(0)}.empty{padding:36px 22px;border:1px dashed var(--line);border-radius:11px;text-align:center;color:var(--muted);font-size:13px}
+    @media(max-width:980px){.overview,.tasks-layout{grid-template-columns:1fr}.sidebar{grid-template-columns:1fr 1fr}.timeline-head{display:block}.week-actions{margin-top:13px}.timeline-note{text-align:left;margin-top:9px}}
+    @media(max-width:680px){.shell{padding:24px 16px 40px}.topbar{display:block}.top-actions{margin-top:17px;justify-content:space-between}.hero{grid-template-columns:1fr;padding:21px}.progress-wrap{grid-template-columns:118px 1fr;gap:15px}.ring,.ring svg{width:118px;height:118px}.toolbar{display:block}.toolbar-actions{justify-content:space-between;margin-top:10px}.segmented{width:100%}.segmented button{flex:1;padding-left:8px;padding-right:8px}.timeline-panel{padding:18px 15px}.sidebar{grid-template-columns:1fr}.task-main{grid-template-columns:23px minmax(0,1fr)}.task-due{grid-column:2;text-align:left}.task-details{grid-template-columns:1fr;padding-left:55px}.task-footer{padding-left:18px}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
   </style>
 </head>
 <body>
   <main class="shell">
     <header class="topbar">
-      <div>
-        <div class="eyebrow">WEEKLY CONTROL DESK</div>
-        <h1>把本周，做成看得见的进度。</h1>
-        <p class="subtitle">任务从“要做什么”开始，到“下一步怎么做”结束。今天先看清最值得推进的几件事。</p>
-      </div>
-      <div class="top-actions">
-        <span class="date-stamp" id="todayStamp"></span>
-        <button class="icon-btn" id="refreshBtn" title="刷新统计" aria-label="刷新统计">↻</button>
-      </div>
+      <div><div class="eyebrow">WEEKLY WORKBENCH</div><h1>把本周，做成看得见的进度。</h1><p class="subtitle">直接编辑任务、安排时间，拖动时间条即可重新排期。无需登录，数据保存在当前浏览器。</p></div>
+      <div class="top-actions"><span class="date-stamp" id="todayStamp"></span><button class="btn ghost" id="resetBtn" title="恢复初始示例">↻</button></div>
     </header>
 
     <section class="overview">
-      <div class="panel hero-panel">
-        <div>
-          <div class="section-kicker">个人进度</div>
-          <h2 id="greeting">舒义，今天先抓住两件事。</h2>
-          <p class="hero-copy" id="heroCopy"></p>
-          <div class="person-select">
-            <label for="personSelect">当前查看</label>
-            <select id="personSelect" aria-label="选择查看人员">
-              <option value="舒义">舒义</option>
-              <option value="领导的神">领导的神</option>
-              <option value="May">May</option>
-              <option value="全部">全部成员</option>
-            </select>
-          </div>
-        </div>
-        <div class="progress-wrap">
-          <div class="ring" aria-label="完成进度">
-            <svg viewBox="0 0 142 142" aria-hidden="true"><circle class="ring-bg" cx="71" cy="71" r="56"></circle><circle class="ring-value" id="ringValue" cx="71" cy="71" r="56" pathLength="100"></circle></svg>
-            <div class="ring-content"><span class="ring-value-text" id="progressPercent">0%</span><span class="ring-label">完成进度</span></div>
-          </div>
-          <div class="stat-list">
-            <div class="stat-line"><span>已完成</span><strong class="green" id="doneCount">0</strong></div>
-            <div class="stat-line"><span>进行中</span><strong class="blue" id="doingCount">0</strong></div>
-            <div class="stat-line"><span>待开始</span><strong class="orange" id="pendingCount">0</strong></div>
-            <div class="stat-line"><span>逾期 / 待确认</span><strong id="riskCount">0</strong></div>
-          </div>
-        </div>
+      <div class="panel hero"><div><div class="section-kicker">团队进度</div><h2 id="greeting">小义，今天先抓住两件事。</h2><p class="hero-copy" id="heroCopy"></p><div class="person-select"><label for="personSelect">当前查看</label><select id="personSelect"></select></div></div>
+        <div class="progress-wrap"><div class="ring"><svg viewBox="0 0 142 142"><circle class="ring-bg" cx="71" cy="71" r="56"></circle><circle class="ring-value" id="ringValue" cx="71" cy="71" r="56" pathLength="100"></circle></svg><div class="ring-content"><strong id="progressPercent">0%</strong><span>完成进度</span></div></div><div class="stats"><div class="stat"><span>已完成</span><strong class="green" id="doneCount">0</strong></div><div class="stat"><span>进行中</span><strong class="blue" id="doingCount">0</strong></div><div class="stat"><span>待开始</span><strong class="orange" id="pendingCount">0</strong></div><div class="stat"><span>逾期</span><strong id="riskCount">0</strong></div></div></div>
       </div>
-      <aside class="panel focus-panel">
-        <div class="panel-heading"><h3>今天的重点</h3><small id="focusHint">按截止时间排序</small></div>
-        <div class="focus-list" id="focusList"></div>
-      </aside>
+      <aside class="panel focus"><div class="panel-heading"><h3>今天的重点</h3><small>按截止时间排序</small></div><div class="focus-list" id="focusList"></div></aside>
     </section>
 
     <section class="panel timeline-panel">
-      <div class="timeline-head">
-        <div><h3>本周时间轴</h3><p>按开始日期排列；进度为当前状态的粗略估算。</p></div>
-        <div class="timeline-legend" aria-label="时间轴图例"><span class="legend-item"><i class="legend-dot"></i>待开始 0%</span><span class="legend-item"><i class="legend-dot progress"></i>进行中 50%</span><span class="legend-item"><i class="legend-dot done"></i>已完成 100%</span><span class="legend-item"><i class="legend-dot overdue"></i>逾期</span></div>
-      </div>
-      <div class="timeline-grid" id="timelineGrid"></div>
-      <div class="timeline-overflow"><span class="timeline-overflow-label">前置 / 下周</span><div class="timeline-overflow-list" id="timelineOverflow"></div></div>
+      <div class="timeline-head"><div><h3>本周排期</h3><p>拖动任务条可移动到其他日期；拖动右侧小把手可延长或缩短排期。</p></div><div class="week-actions"><button class="btn ghost" id="prevWeek">←</button><button class="btn" id="thisWeek">本周</button><button class="btn ghost" id="nextWeek">→</button></div></div>
+      <div class="timeline-note">任务跨天时会占用连续日期格；红色表示已逾期但尚未完成。</div><div class="timeline-scroller"><div class="gantt" id="gantt"></div></div>
     </section>
 
-    <div class="toolbar">
-      <div class="segmented" role="group" aria-label="任务范围">
-        <button data-view="all" aria-pressed="true">全部任务</button>
-        <button data-view="active" aria-pressed="false">只看未完成</button>
-        <button data-view="priority" aria-pressed="false">重要任务</button>
-      </div>
-      <div class="toolbar-right"><span class="filter-note" id="filterNote"></span></div>
-    </div>
+    <div class="toolbar"><div class="segmented" role="group"><button data-view="all" aria-pressed="true">全部任务</button><button data-view="active" aria-pressed="false">只看未完成</button><button data-view="priority" aria-pressed="false">重要任务</button></div><div class="toolbar-actions"><span class="filter-note" id="filterNote"></span><button class="btn primary" id="addTaskBtn">+ 新建任务</button></div></div>
 
-    <section class="tasks-layout">
-      <div class="task-list" id="taskList"></div>
-      <aside class="sidebar">
-        <div class="panel side-panel">
-          <div class="panel-heading"><h3>团队进度</h3><small>按执行人</small></div>
-          <div class="people" id="peopleList"></div>
-        </div>
-        <div class="panel side-panel reminder">
-          <div class="panel-heading"><h3>每日复盘提醒</h3><span aria-hidden="true">◷</span></div>
-          <p class="reminder-copy">每天早上提醒你回顾：完成了什么、没完成什么，以及今天做得好的地方。</p>
-          <div class="reminder-time"><span>Asia/Shanghai</span><strong>06:00</strong></div>
-        </div>
-        <div class="panel side-panel ai-panel">
-          <div class="panel-heading"><h3>AI 工作台</h3><span class="ai-status" id="aiStatus">演示模式</span></div>
-          <p class="ai-hint" id="aiHint">配置 Supabase 后，网页会自动匿名连接；匿名数据只保存在当前浏览器。</p>
-          <div class="ai-messages" id="aiMessages"><div class="ai-empty">例如：查一下我今天还有哪些未完成任务。</div></div>
-          <form class="ai-form" id="aiForm"><input class="ai-input" id="aiInput" placeholder="告诉 AI 你要做什么" aria-label="告诉 AI 你要做什么"><button class="small-btn" id="aiSend" type="submit" disabled>发送</button></form>
-        </div>
-      </aside>
-    </section>
+    <section class="tasks-layout"><div class="task-list" id="taskList"></div><aside class="sidebar"><div class="panel side-panel"><div class="panel-heading"><h3>团队成员</h3><small>可直接管理</small></div><div class="people" id="peopleList"></div><div class="people-actions"><button class="btn" id="manageMembersBtn">管理成员</button></div></div><div class="panel side-panel local-panel"><div class="panel-heading"><h3>本地工作台</h3><small>无需登录</small></div><p>任务、成员和排期自动保存到当前浏览器。</p><strong>换设备或清除浏览器数据后不会保留。</strong></div></aside></section>
   </main>
+  <dialog id="taskDialog"><div class="dialog-head"><h3 id="taskDialogTitle">编辑任务</h3><button class="dialog-close" data-close="taskDialog" aria-label="关闭">×</button></div><form class="task-form" id="taskForm"><input type="hidden" id="taskId"><div class="form-grid"><div class="field full"><label for="taskTitle">任务名称</label><input id="taskTitle" required maxlength="120"></div><div class="field"><label for="taskOwner">负责人</label><select id="taskOwner" required></select></div><div class="field"><label for="taskStatus">状态</label><select id="taskStatus"><option>待开始</option><option>进行中</option><option>已停滞</option><option>已完成</option></select></div><div class="field"><label for="taskStart">开始日期</label><input id="taskStart" type="date" required></div><div class="field"><label for="taskDue">截止日期</label><input id="taskDue" type="date" required></div><div class="field"><label for="taskProgress">完成进度</label><select id="taskProgress"><option value="0">0%</option><option value="25">25%</option><option value="50">50%</option><option value="75">75%</option><option value="100">100%</option></select></div><div class="field"><label for="taskPriority">优先级</label><select id="taskPriority"><option>重要紧急</option><option>重要不紧急</option><option>紧急不重要</option><option>不紧急不重要</option></select></div><div class="field full"><label for="taskUpdate">下一步 / 最新进展</label><textarea id="taskUpdate"></textarea></div><div class="field full"><label for="taskSummary">完成标准</label><textarea id="taskSummary"></textarea></div></div><div class="dialog-actions"><button type="button" class="btn danger" id="deleteTaskBtn">删除任务</button><div class="dialog-actions-right"><button type="button" class="btn" data-close="taskDialog">取消</button><button class="btn primary" type="submit">保存任务</button></div></div></form></dialog>
+  <dialog id="memberDialog"><div class="dialog-head"><h3>管理团队成员</h3><button class="dialog-close" data-close="memberDialog" aria-label="关闭">×</button></div><div class="member-form"><div class="form-grid"><div class="field"><label for="newMemberName">新成员名称</label><input id="newMemberName" maxlength="20" placeholder="例如：小凌"></div><div class="field" style="align-self:end"><button class="btn primary" id="addMemberBtn" type="button">添加成员</button></div></div><div class="member-list" id="memberList"></div></div></dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
   <script>
-    let tasks = [
-      {id:"recvqAHyhsz9Gi",title:"周二｜小义：完成中转站未来 5 天视频的批量文案、拍摄及数字人/音频素材",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785168000000,due:1785254399000,done:null,update:"目标是今天完成文案和主要素材，无法完成的部分顺延到周三上午。",summary:"中转站优先处理：完成未来 5 天视频的脚本、拍摄、数字人和音频素材，按日期编号整理，交付小凌后续剪辑和定时发布。"},
-      {id:"recvqAxRiYY2rz",title:"公众号及多平台：将 AI 内容整理为图文并同步发布（含外网）",owner:"领导的神",status:"待开始",priority:"重要不紧急",start:1785100800000,due:1785600000000,done:null,update:"待确认同步平台清单、发布频率及各平台内容适配规范。",summary:"所有 AI 相关内容转为图文形式，发布公众号文章，并同步到多个平台，包括外网。同步平台清单和发布频率待确认。"},
-      {id:"recvqAxzHtk2JM",title:"中转站：抖音、小红书、B站、公众号等平台分发推广，至少日更并推动用户增长与转化",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785100800000,due:1785600000000,done:null,update:"待确认平台账号、内容排期、转化指标及负责人。",summary:"负责中转站营销推广、用户增长和转化，要求在抖音、小红书、B站、公众号等平台持续分发，至少日更。负责人和指标待确认。"},
-      {id:"recvpkqkEeGkKz",title:"中转站营销视频制作并产出成片",owner:"舒义",status:"进行中",priority:"重要紧急",start:1783958400000,due:1784035199000,done:null,update:"今日重点任务：完成制作并输出成片，完成后确认最终效果。",summary:"昨天已完成测试全流程，整体大致跑通；今天完成中转站营销视频制作，必须产出一个成片。"},
-      {id:"recvqAxIxgPEOK",title:"自媒体账号“小义子小”：本月实现商单收入 20,000 元",owner:"领导的神",status:"待开始",priority:"重要不紧急",start:1785100800000,due:1787673600000,done:null,update:"待确认当前收入、商单数量目标及转化方案。",summary:"通过提高内容更新频率增加接商单数量，月度商单收入目标为 20,000 元。当前进度、统计口径及承接方案待确认。"},
-      {id:"recvpkqkKFVrCy",title:"AI课程更新：整理文案及 GitHub、AI 找选题两节稿子",owner:"舒义",status:"进行中",priority:"重要不紧急",start:1783958400000,due:1784035199000,done:null,update:"今日先完成课程结构和两节稿子的初稿，再根据需要补充案例。",summary:"先把课程文案理顺，重点整理 GitHub 和 AI 找选题两节课的稿子。"},
-      {id:"recvqAHt69fyYb",title:"周二｜小义：确定本周精简版内容计划并完成第 1 条常规视频文案",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785168000000,due:1785254400000,done:null,update:"本周不补排周一任务；先完成第 1 条常规视频文案及中转站批量制作清单。",summary:"本周剩余 4 天，常规视频目标调整为 2 条。今天完成第 1 条视频的选题、脚本、分镜和拍摄清单；同时确认中转站批量视频的主题与排期。"},
-      {id:"recvqAHAKtfYpl",title:"周二｜小凌：启动中转站批量视频剪辑并建立定时发布排期",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785168000000,due:1785254400000,done:null,update:"先做出首批可发布视频，剩余视频周三继续完成。",summary:"根据小义交付的中转站素材，先完成可用视频的剪辑、封面、标题和发布文案，并建立未来 5 天的定时发布清单。"},
-      {id:"recvqAHIgJg2Br",title:"周四｜小凌：完成第 2 条常规视频剪辑、封面、标题和发布文案",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785340800000,due:1785427199000,done:null,update:"第 2 条视频达到可发布状态，公众号内容同步准备完成。",summary:"根据小义交付的第 2 条视频素材完成后期制作，并同步准备对应公众号文章的配图、标题和平台发布信息。"},
-      {id:"recvqAxvZMiDL5",title:"中转站：搭建并运营 X、闲鱼等渠道，完成闲鱼代挂服务上架及自动发货设置",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785100800000,due:1785600000000,done:null,update:"待确认负责人、操作账号和上线时间。",summary:"会议要求通过 X、闲鱼等渠道运营中转站，其中闲鱼包含代挂服务和自动发货设置。执行人及具体时间待确认。"},
-      {id:"recvqAxCZTaVmn",title:"自媒体账号“小义子小”：每周更新 2 条 AI 内容",owner:"领导的神",status:"待开始",priority:"重要不紧急",start:1785100800000,due:1785600000000,done:null,update:"待确认本周具体选题、负责人及发布平台。",summary:"账号方向为剪辑、AI、数码。通过提高更新频率增加接商单数量，本周需完成 2 条 AI 内容。"},
-      {id:"recvqAHMEXfcLx",title:"周五｜小凌：完成 2 条常规视频全平台分发及中转站定时发布检查",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785427200000,due:1785513599000,done:null,update:"记录视频、公众号及中转站定时发布链接，确保周末无需临时制作。",summary:"完成两条常规视频的全平台发布与分发，发布对应公众号文案；检查中转站未来 5 天定时发布是否完整、链接和文案是否正确。"},
-      {id:"recvqAxFUrdBFV",title:"自媒体账号“小义子小”：每周更新 2 条数码内容",owner:"领导的神",status:"待开始",priority:"重要不紧急",start:1785100800000,due:1785600000000,done:null,update:"待确认本周具体选题、负责人及发布平台。",summary:"账号方向为剪辑、AI、数码。通过提高更新频率增加接商单数量，本周需完成 2 条数码内容。"},
-      {id:"recvqAxLeB1FBj",title:"AI课程：更新 AI 剪辑、声音克隆、数字人及“找选题”章节",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785100800000,due:1785600000000,done:null,update:"待确认课程目录位置、更新标准和最终上线时间。",summary:"将已经测试好的 AI 剪辑、声音克隆、数字人内容，以及找选题章节整理并更新到课程中。负责人和上线时间待确认。"},
-      {id:"recvqAxOs8GoGS",title:"AI课程：制作软广视频，展示课程并引流私域促成成交",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785100800000,due:1785600000000,done:null,update:"待确认视频数量、发布平台、私域承接人及成交目标。",summary:"通过相关视频软广展示课程内容、激发学习需求，引流到私域并推动成交。视频数量、渠道、私域承接人及成交目标待确认。"},
-      {id:"recvqAHvFlZYOc",title:"周二｜小凌：整理现有素材并完成后期模板与第 1 条视频剪辑启动",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785168000000,due:1785254399000,done:null,update:"优先消化已有素材，不等待本周全部拍摄完成。",summary:"利用小义准备文案的时间，整理已有素材、统一剪辑模板、封面模板、标题和发布文案格式；收到素材后启动第 1 条常规视频粗剪。"},
-      {id:"recvqAHECfmJH8",title:"周三｜小义：拍摄第 1 条常规视频并完成 AI 课程更新",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785254400000,due:1785340799000,done:null,update:"拍摄不与其他大块任务硬性重叠；课程更新完成可审核版本。",summary:"预留半天完成第 1 条常规视频拍摄；其余时间更新 AI 剪辑、声音克隆、数字人和找选题课程内容。"},
-      {id:"recvqAHEFpo4Is",title:"周三｜小凌：完成第 1 条常规视频精剪并准备公众号同步文案",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785254400000,due:1785340800000,done:null,update:"视频与公众号文案成套交付，避免公众号集中到一天发布。",summary:"完成第 1 条视频剪辑、封面、标题和发布文案；同步整理对应公众号文章，确保视频发布当天或最晚次日可发布。"},
-      {id:"recvpkte0f81Yh",title:"制作并发布抖音日常视频",owner:"May",status:"已完成",priority:"重要不紧急",start:1783958400000,due:1784035199000,done:1784035199000,update:"任务已完成，后续可补充播放、点赞、评论等发布效果数据。",summary:"已制作并发布一条抖音日常视频。"},
-      {id:"recvqAHMGYXVqx",title:"周五｜小义：完成第 1、2 条常规视频及课程/中转站内容验收",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785427200000,due:1785513599000,done:null,update:"完成最终验收，列出下周需要继续推进的内容。",summary:"审核两条常规视频成片、公众号文章、中转站批量视频和 AI 课程更新；补齐数字人、音频或文案缺口，并为下周预留选题。"},
-      {id:"recvqAHEEAO6PY",title:"周三｜小凌：完成中转站批量视频第二批剪辑并设置定时发布",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785254400000,due:1785340800000,done:null,update:"优先保证中转站未来 5 天有可发布库存。",summary:"继续完成中转站视频的剪辑、封面、标题和发布文案，补齐未来 5 天定时发布排期。"},
-      {id:"recvqAHMEYXpui",title:"下周｜小义：闲鱼发布商品并设置自动售卖/自动发货",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785772800000,due:1786118399000,done:null,update:"明确商品信息、自动发货规则和异常处理方式后上线。",summary:"发布中转站相关闲鱼商品，完善商品标题、详情、服务说明和购买须知；设置自动售卖/自动发货并完成完整购买流程测试。"},
-      {id:"recvqAHIfAyXpL",title:"周四｜小义：拍摄第 2 条常规视频并完成公众号文章制作",owner:"领导的神",status:"待开始",priority:"重要紧急",start:1785340800000,due:1785427199000,done:null,update:"公众号文章跟随视频发布，当天或隔天完成，不集中堆积。",summary:"预留半天完成第 2 条常规视频拍摄；同步将已发布/即将发布的视频整理为公众号图文，完成对应文章并准备发布。"},
-      {id:"personal-ai-music-video",title:"今日｜剪辑一个 AI 配乐的视频",owner:"舒义",status:"待开始",priority:"重要紧急",start:1785373200000,due:1785427199000,done:null,kind:"work",update:"先完成粗剪和配乐节奏匹配，再输出一版可确认的成片。",summary:"完成一个 AI 配乐视频的剪辑，并产出可以检查最终效果的成片。"},
-      {id:"personal-new-copy",title:"今日｜完成一期新的文案",owner:"舒义",status:"待开始",priority:"重要紧急",start:1785373200000,due:1785427199000,done:null,kind:"work",update:"先确定选题和结构，完成初稿后再做一轮精简和润色。",summary:"完成一期新文案初稿，形成可以进入下一步制作的版本。"},
-      {id:"personal-west-lake-cycling",title:"今晚｜去西湖骑车",owner:"舒义",status:"待开始",priority:"不紧急不重要",start:1785407400000,due:1785418200000,done:null,kind:"personal",update:"晚上 18:30 出发，预留约 3 小时。",summary:"完成今晚的西湖骑车安排，作为今天工作后的生活计划。"}
-    ];
-    const demoTasks = tasks;
-    let cloudClient = null;
-    let currentSession = null;
-    const aiMessages = [];
-    const today = new Date();
-    const localToday = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).format(today);
-    const todayAtNoon = new Date(`${localToday}T12:00:00+08:00`);
-    const workdayMonday = new Date(todayAtNoon.getTime() - ((todayAtNoon.getUTCDay() + 6) % 7) * 86400000);
-    const state = { person: '舒义', view: 'all', localDone: JSON.parse(localStorage.getItem('weeklyWorkbenchDone') || '{}') };
-    const $ = (id) => document.getElementById(id);
-    const dateFmt = (value) => value ? new Intl.DateTimeFormat('zh-CN', {month:'numeric', day:'numeric'}).format(new Date(value)) : '未设定';
-    const isDone = (task) => state.localDone[task.id] || task.status === '已完成';
-    const isOverdue = (task) => !isDone(task) && task.due && new Date(task.due) < today;
-    const selectedTasks = () => tasks.filter(task => state.person === '全部' || task.owner === state.person);
+    const STORE_KEY = 'weeklyWorkbenchV3';
+    const dayMs = 86400000;
+    const pad = value => String(value).padStart(2,'0');
+    const isoDate = date => `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+    const fromDate = value => { const [year,month,day] = value.split('-').map(Number); return new Date(year,month-1,day,12); };
+    const addDays = (value, days) => { const date = fromDate(value); date.setDate(date.getDate()+days); return isoDate(date); };
+    const diffDays = (start,end) => Math.max(0,Math.round((fromDate(end)-fromDate(start))/dayMs));
+    const mondayOf = date => { const result = new Date(date.getFullYear(),date.getMonth(),date.getDate(),12); result.setDate(result.getDate()-((result.getDay()+6)%7)); return result; };
+    const dateText = value => new Intl.DateTimeFormat('zh-CN',{month:'numeric',day:'numeric'}).format(fromDate(value));
+    const escapeHtml = value => String(value||'').replace(/[&<>"']/g,char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const uid = () => `task-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const $ = id => document.getElementById(id);
+    const today = isoDate(new Date());
+    const createSeed = () => { const start = isoDate(mondayOf(new Date())); return { members:['小义','小凌'], tasks:[
+      {id:uid(),title:'完成 AI 配乐视频的剪辑与导出',owner:'小义',status:'进行中',priority:'重要紧急',start:addDays(start,0),due:addDays(start,2),progress:50,update:'完成粗剪和配乐节奏匹配，导出一版可确认成片。',summary:'输出一条可检查最终效果的 AI 配乐视频。'},
+      {id:uid(),title:'完成一期新的文案初稿',owner:'小义',status:'待开始',priority:'重要紧急',start:addDays(start,1),due:addDays(start,3),progress:0,update:'确定选题和结构，完成初稿后做一轮精简。',summary:'形成可以进入下一步制作的文案版本。'},
+      {id:uid(),title:'制作第 1 条常规视频精剪',owner:'小凌',status:'进行中',priority:'重要紧急',start:addDays(start,0),due:addDays(start,3),progress:50,update:'完成精剪、封面、标题和发布文案。',summary:'视频达到可发布状态，并准备好平台文案。'},
+      {id:uid(),title:'建立中转站未来 5 天发布排期',owner:'小凌',status:'待开始',priority:'重要不紧急',start:addDays(start,2),due:addDays(start,5),progress:0,update:'整理可用素材，设置定时发布和发布检查清单。',summary:'未来 5 天均有可发布内容和对应文案。'}
+    ]}; };
+    const load = () => { try { const saved = JSON.parse(localStorage.getItem(STORE_KEY)); if (saved?.members?.length && Array.isArray(saved.tasks)) return saved; } catch {} return createSeed(); };
+    let data = load();
+    let viewWeek = mondayOf(new Date());
+    const state = { person:'全部', view:'all', editingId:null, draggingId:null, resizing:null };
+    const save = () => localStorage.setItem(STORE_KEY,JSON.stringify(data));
+    const toast = message => { const node=$('toast'); node.textContent=message; node.classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>node.classList.remove('show'),2500); };
+    const isDone = task => task.status === '已完成' || Number(task.progress) === 100;
+    const isOverdue = task => !isDone(task) && task.due < today;
+    const progress = task => isDone(task) ? 100 : Number(task.progress)||0;
+    const selectedTasks = () => data.tasks.filter(task => state.person === '全部' || task.owner === state.person);
     const visibleTasks = () => selectedTasks().filter(task => state.view === 'active' ? !isDone(task) : state.view === 'priority' ? task.priority === '重要紧急' : true);
-    const ownerInitial = (name) => name === '领导的神' ? '领' : name.slice(0,1);
-    const statusClass = (task) => isDone(task) ? 'status-done' : task.status === '进行中' ? 'status-progress' : 'status-pending';
-    const statusText = (task) => isDone(task) ? '已完成' : task.status;
-    const progressValue = (task) => isDone(task) ? 100 : task.status === '进行中' ? 50 : 0;
-    const dateKey = (value) => { if (!value) return ''; const parts = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value)); const map = Object.fromEntries(parts.map(part => [part.type, part.value])); return `${map.year}-${map.month}-${map.day}`; };
-    const weekStart = workdayMonday;
-    const weekDays = Array.from({length:7}, (_, index) => new Date(weekStart.getTime() + index * 86400000));
-    const dayNames = ['周一','周二','周三','周四','周五','周六','周日'];
-    const dayLabel = (date) => new Intl.DateTimeFormat('zh-CN', {timeZone:'Asia/Shanghai',month:'numeric',day:'numeric'}).format(date);
-    const dayKey = (date) => dateKey(date.getTime());
-    const timelineItem = (task) => { const value = progressValue(task); const overdue = isOverdue(task); return `<div class="timeline-item ${isDone(task) ? 'is-done' : ''} ${overdue ? 'is-overdue' : ''} ${task.kind === 'personal' ? 'is-personal' : ''}"><div class="timeline-item-title">${task.title}</div><div class="timeline-item-meta"><span>${task.kind === 'personal' ? '生活安排' : task.owner}</span><strong>${overdue ? '已逾期' : value + '%'}</strong></div><div class="timeline-bar"><i style="width:${value}%"></i></div></div>`; };
-    const showToast = (message) => { const node = $('toast'); node.textContent = message; node.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => node.classList.remove('show'), 2400); };
-    const config = window.WORKPLAN_CONFIG || {};
-    const cloudReady = () => Boolean(window.supabase && config.SUPABASE_URL && config.SUPABASE_ANON_KEY && !config.SUPABASE_URL.includes('你的项目'));
-    const mapCloudTask = (row) => ({id:row.id,title:row.title,owner:row.owner_name || '',status:row.status,priority:row.priority,kind:row.category === 'personal' ? 'personal' : 'work',start:row.start_at ? Date.parse(row.start_at) : null,due:row.due_at ? Date.parse(row.due_at) : null,done:row.completed_at ? Date.parse(row.completed_at) : null,update:row.latest_update || '',summary:row.completion_criteria || row.description || ''});
-    const toCloudTask = (task) => ({title:task.title,description:task.description || '',owner_name:task.owner || '',status:task.status,priority:task.priority || '不紧急不重要',category:task.kind === 'personal' ? 'personal' : 'work',start_at:task.start ? new Date(task.start).toISOString() : null,due_at:task.due ? new Date(task.due).toISOString() : null,completed_at:task.done ? new Date(task.done).toISOString() : null,latest_update:task.update || '',completion_criteria:task.summary || '',source_record_id:task.id});
-    const setCloudStatus = (text, connected = false) => { $('aiStatus').textContent = text; $('aiStatus').classList.toggle('connected', connected); };
-    const renderAiMessages = () => { const node = $('aiMessages'); node.innerHTML = aiMessages.length ? aiMessages.map(item => `<div class="ai-message ${item.role}">${item.content}</div>`).join('') : '<div class="ai-empty">例如：查一下我今天还有哪些未完成任务。</div>'; node.scrollTop = node.scrollHeight; };
-    const loadCloudTasks = async () => {
-      const {data, error} = await cloudClient.from('tasks').select('*').is('archived_at', null).order('due_at', {ascending:true, nullsFirst:false});
-      if (error) throw error;
-      if (!data?.length) {
-        const seed = demoTasks.map(toCloudTask);
-        const seeded = await cloudClient.from('tasks').insert(seed).select('*');
-        if (seeded.error) throw seeded.error;
-        tasks = (seeded.data || []).map(mapCloudTask);
-      } else tasks = data.map(mapCloudTask);
-      render();
-    };
-    const connectCloud = async () => {
-      if (!cloudReady()) { setCloudStatus('演示模式'); $('aiHint').textContent = '配置 Supabase 后，网页会自动匿名连接。'; return; }
-      cloudClient = window.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
-      let {data:{session}} = await cloudClient.auth.getSession();
-      if (!session) {
-        const anonymous = await cloudClient.auth.signInAnonymously();
-        if (anonymous.error) throw new Error(`匿名访问未启用：${anonymous.error.message}`);
-        session = anonymous.data.session;
-      }
-      currentSession = session;
-      setCloudStatus('已连接', true);
-      $('aiSend').disabled = !config.AI_FUNCTION_URL;
-      $('aiHint').textContent = '已匿名连接；数据只绑定当前浏览器，换设备后不会自动同步。';
-      await loadCloudTasks();
-    };
-    const updateCloudTask = async (task, patch) => { const {data, error} = await cloudClient.from('tasks').update(patch).eq('id', task.id).select('*').single(); if (error) throw error; return mapCloudTask(data); };
-    const sendAiMessage = async (message) => {
-      if (!currentSession || !config.AI_FUNCTION_URL) { showToast('云端 AI 尚未连接'); return; }
-      aiMessages.push({role:'user',content:message}); renderAiMessages(); $('aiSend').disabled = true; $('aiInput').disabled = true;
-      try {
-        const response = await fetch(config.AI_FUNCTION_URL, {method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${currentSession.access_token}`},body:JSON.stringify({message,messages:aiMessages})});
-        const body = await response.json(); if (!response.ok) throw new Error(body.error || 'AI 请求失败');
-        aiMessages.push({role:'assistant',content:body.reply || '已完成。'}); renderAiMessages();
-        if (body.toolResults?.length) await loadCloudTasks();
-      } catch (error) { aiMessages.push({role:'assistant',content:`处理失败：${error.message}`}); renderAiMessages(); }
-      finally { $('aiSend').disabled = !currentSession || !config.AI_FUNCTION_URL; $('aiInput').disabled = false; $('aiInput').focus(); }
-    };
-
-    function renderOverview() {
-      const list = selectedTasks();
-      const done = list.filter(isDone).length;
-      const doing = list.filter(task => !isDone(task) && task.status === '进行中').length;
-      const pending = list.filter(task => !isDone(task) && task.status !== '进行中').length;
-      const risks = list.filter(task => isOverdue(task) || (!isDone(task) && task.update.includes('待确认'))).length;
-      const percent = list.length ? Math.round(done / list.length * 100) : 0;
-      $('progressPercent').textContent = percent + '%'; $('doneCount').textContent = done; $('doingCount').textContent = doing; $('pendingCount').textContent = pending; $('riskCount').textContent = risks;
-      $('ringValue').style.strokeDasharray = '100'; $('ringValue').style.strokeDashoffset = String(100 - percent);
-      const name = state.person === '全部' ? '团队' : state.person;
-      $('greeting').textContent = name + (name === '团队' ? '，今天先让重要任务往前走。' : '，今天先抓住两件事。');
-      $('heroCopy').textContent = done ? `已完成 ${done} 项，剩下的工作集中在 ${doing} 项进行中和 ${pending} 项待开始任务。先解决逾期与待确认项，推进会更顺。` : `当前还没有记录完成项。先把正在推进的任务落成一个可交付结果，再处理待开始任务中的确认项。`;
-      $('filterNote').textContent = `当前显示 ${visibleTasks().length} / ${list.length} 项`;
-    }
-    function renderFocus() {
-      const list = selectedTasks().filter(task => !isDone(task)).sort((a,b) => (isOverdue(b) - isOverdue(a)) || ((a.due || Infinity) - (b.due || Infinity))).slice(0,3);
-      $('focusList').innerHTML = list.length ? list.map((task,index) => `<div class="focus-item"><span class="focus-num">0${index+1}</span><div><strong>${task.title}</strong><p>${isOverdue(task) ? '已超过预计完成日期 · ' : ''}${task.update}</p></div></div>`).join('') : '<div class="empty">这个人目前没有未完成任务。</div>';
-    }
-    function renderTimeline() {
-      const list = visibleTasks();
-      const timelineKeys = new Set(weekDays.map(dayKey));
-      $('timelineGrid').innerHTML = weekDays.map((date, index) => { const key = dayKey(date); const dayTasks = list.filter(task => dateKey(task.start) === key); const average = dayTasks.length ? Math.round(dayTasks.reduce((sum, task) => sum + progressValue(task), 0) / dayTasks.length) : null; return `<div class="timeline-day ${key === dayKey(today) ? 'is-today' : ''}"><div class="timeline-day-head"><span class="timeline-day-name">${dayNames[index]}${key === dayKey(today) ? ' · 今天' : ''}</span><span class="timeline-day-date">${dayLabel(date)}</span></div><div class="timeline-day-progress"><span>${dayTasks.length ? dayTasks.length + ' 项任务' : '暂无任务'}</span><strong>${average === null ? '—' : '约 ' + average + '%'}</strong></div><div class="timeline-items">${dayTasks.length ? dayTasks.map(timelineItem).join('') : '<div class="timeline-empty">留给临时推进</div>'}</div></div>`; }).join('');
-      const overflow = list.filter(task => !timelineKeys.has(dateKey(task.start)));
-      $('timelineOverflow').innerHTML = overflow.length ? overflow.map(timelineItem).join('') : '<div class="timeline-empty">没有前置或下周任务</div>';
-    }
-    function renderTasks() {
-      const list = visibleTasks().sort((a,b) => (isDone(a) - isDone(b)) || (isOverdue(b) - isOverdue(a)) || ((a.due || Infinity) - (b.due || Infinity)));
-      $('taskList').innerHTML = list.length ? list.map(task => `<article class="task-card ${isDone(task) ? 'is-done' : ''}">
-        <div class="task-main"><button class="task-check ${isDone(task) ? 'done' : ''}" data-action="done" data-id="${task.id}" title="标记完成" aria-label="标记完成">${isDone(task) ? '✓' : '·'}</button><div><h3 class="task-title">${task.title}</h3><div class="task-meta"><span class="chip owner">${task.owner}</span><span class="chip ${statusClass(task)}">${statusText(task)}</span><span class="chip ${task.kind === 'personal' ? 'personal-chip' : task.priority === '重要紧急' ? 'priority-high' : 'priority-mid'}">${task.kind === 'personal' ? '生活安排' : task.priority}</span></div></div><div class="task-due ${isOverdue(task) ? 'overdue' : ''}"><strong>${isOverdue(task) ? '已逾期' : '预计完成'}</strong>${dateFmt(task.due)}</div></div>
-        <div class="task-detail"><div class="detail-block"><div class="detail-label">下一步 / 最新进展</div><div class="detail-text">${task.update || '暂无记录'}</div></div><div class="detail-block"><div class="detail-label">任务完成标准</div><div class="detail-text">${task.summary || '暂无记录'}</div></div></div>
-        <div class="task-footer"><button class="text-btn" data-action="copy" data-id="${task.id}">复制下一步</button>${isDone(task) ? '<span class="chip status-done">已记入完成</span>' : '<button class="text-btn" data-action="done" data-id="'+task.id+'">标记完成</button>'}</div>
-      </article>`).join('') : '<div class="empty">没有符合当前筛选条件的任务。</div>';
-    }
-    function renderPeople() {
-      const names = ['舒义','领导的神','May'];
-      $('peopleList').innerHTML = names.map(name => { const list = tasks.filter(task => task.owner === name); const done = list.filter(isDone).length; const percent = list.length ? Math.round(done / list.length * 100) : 0; return `<div class="person-row"><span class="avatar">${ownerInitial(name)}</span><div><strong>${name}</strong><small>${done} / ${list.length} 项完成</small><div class="mini-bar"><i style="width:${percent}%"></i></div></div><span class="person-count">${percent}%</span></div>`; }).join('');
-    }
-    function render() { renderOverview(); renderFocus(); renderTimeline(); renderTasks(); renderPeople(); }
-    document.querySelectorAll('.segmented button').forEach(button => button.addEventListener('click', () => { state.view = button.dataset.view; document.querySelectorAll('.segmented button').forEach(item => item.setAttribute('aria-pressed', item === button ? 'true' : 'false')); render(); }));
-    $('personSelect').addEventListener('change', (event) => { state.person = event.target.value; render(); });
-    $('refreshBtn').addEventListener('click', () => { render(); showToast('统计已刷新'); });
-    $('taskList').addEventListener('click', async (event) => { const button = event.target.closest('[data-action]'); if (!button) return; const task = tasks.find(item => item.id === button.dataset.id); if (!task) return; if (button.dataset.action === 'done') { const nextDone = !isDone(task); try { if (cloudClient && currentSession) { const saved = await updateCloudTask(task, {status:nextDone ? '已完成' : '待开始',completed_at:nextDone ? new Date().toISOString() : null}); tasks = tasks.map(item => item.id === task.id ? saved : item); } else { state.localDone[task.id] = nextDone; localStorage.setItem('weeklyWorkbenchDone', JSON.stringify(state.localDone)); } render(); showToast(nextDone ? '已记录为完成' : '已恢复为未完成'); } catch (error) { showToast(`保存失败：${error.message}`); } } if (button.dataset.action === 'copy') { try { await navigator.clipboard.writeText(task.update); showToast('下一步已复制'); } catch { showToast('当前浏览器不支持自动复制'); } } });
-    $('aiForm').addEventListener('submit', async (event) => { event.preventDefault(); const input = $('aiInput'); const message = input.value.trim(); if (!message) return; input.value = ''; await sendAiMessage(message); });
-    $('todayStamp').textContent = new Intl.DateTimeFormat('zh-CN', {weekday:'short', month:'long', day:'numeric'}).format(today);
-    render();
-    connectCloud().catch(error => {
-      cloudClient = null;
-      currentSession = null;
-      setCloudStatus('本地模式');
-      $('aiSend').disabled = true;
-      $('aiHint').textContent = error.message.includes('匿名访问未启用') ? '当前使用本地任务；如需云端同步和 AI，请在 Supabase 开启 Anonymous Sign-ins。' : `Supabase 连接失败：${error.message}`;
-    });
+    const ownerInitial = name => name.slice(0,1);
+    const taskStatusClass = task => isDone(task) ? 'status-done' : task.status === '进行中' ? 'status-progress' : 'status-pending';
+    const buildPersonSelect = () => { const selected = state.person; $('personSelect').innerHTML = `<option value="全部">全部成员</option>${data.members.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')}`; $('personSelect').value = data.members.includes(selected) || selected === '全部' ? selected : '全部'; state.person=$('personSelect').value; };
+    function renderOverview(){ const list=selectedTasks(); const done=list.filter(isDone).length; const doing=list.filter(task=>!isDone(task)&&task.status==='进行中').length; const pending=list.filter(task=>!isDone(task)&&task.status!=='进行中').length; const risks=list.filter(isOverdue).length; const percent=list.length?Math.round(list.reduce((sum,task)=>sum+progress(task),0)/list.length):0; $('progressPercent').textContent=`${percent}%`; $('ringValue').style.strokeDasharray='100'; $('ringValue').style.strokeDashoffset=String(100-percent); $('doneCount').textContent=done; $('doingCount').textContent=doing; $('pendingCount').textContent=pending; $('riskCount').textContent=risks; const name=state.person==='全部'?'团队':state.person; $('greeting').textContent=`${name}，今天先抓住两件事。`; $('heroCopy').textContent=done?`已完成 ${done} 项；剩余任务集中在 ${doing} 项进行中和 ${pending} 项待开始。优先推进逾期和重要任务。`:'先把正在推进的任务落成一个可交付结果，再处理待开始任务。'; $('filterNote').textContent=`当前显示 ${visibleTasks().length} / ${list.length} 项`; }
+    function renderFocus(){ const list=selectedTasks().filter(task=>!isDone(task)).sort((a,b)=>(Number(isOverdue(b))-Number(isOverdue(a)))||a.due.localeCompare(b.due)).slice(0,3); $('focusList').innerHTML=list.length?list.map((task,index)=>`<div class="focus-item"><span class="focus-num">0${index+1}</span><div><strong>${escapeHtml(task.title)}</strong><p>${isOverdue(task)?'已逾期 · ':''}${escapeHtml(task.update||'尚未设置下一步')}</p></div></div>`).join(''):'<div class="empty">当前没有未完成任务。</div>'; }
+    const weekDates = () => Array.from({length:7},(_,index)=>isoDate(new Date(viewWeek.getFullYear(),viewWeek.getMonth(),viewWeek.getDate()+index,12)));
+    const laneTasks = tasks => { const sorted=[...tasks].sort((a,b)=>a.start.localeCompare(b.start)||a.due.localeCompare(b.due)); const lanes=[]; sorted.forEach(task=>{ let lane=lanes.find(items=>!items.some(other=>!(task.due<other.start||task.start>other.due))); if(!lane){lane=[];lanes.push(lane)} lane.push(task); task._lane=lanes.indexOf(lane)+1; }); return {tasks:sorted,count:Math.max(1,lanes.length)}; };
+    function renderTimeline(){ const days=weekDates(); const dayNames=['周一','周二','周三','周四','周五','周六','周日']; const header=`<div class="gantt-head"><div class="gantt-corner">负责人 / 任务</div>${days.map((day,index)=>`<div class="gantt-day ${day===today?'today':''}"><small>${dayNames[index]}${day===today?' · 今天':''}</small>${dateText(day)}</div>`).join('')}</div>`; const rows=data.members.map(owner=>{ const all=data.tasks.filter(task=>task.owner===owner); const {tasks,count}=laneTasks(all); const shown=tasks.filter(task=>task.due>=days[0]&&task.start<=days[6]); const drops=days.map(day=>`<div class="timeline-drop" data-drop-date="${day}"></div>`).join(''); const bars=shown.map(task=>{const start=Math.max(0,diffDays(days[0],task.start));const end=Math.min(6,diffDays(days[0],task.due));const classes=`${isOverdue(task)?'overdue':''} ${isDone(task)?'done':''}`;return `<div class="task-bar ${classes}" draggable="true" data-task-id="${task.id}" style="grid-column:${start+1}/${end+2};grid-row:${task._lane}"><span>${escapeHtml(task.title)}</span><i class="resize" data-resize-id="${task.id}" title="拖动调整截止日期"></i></div>`}).join(''); return `<div class="gantt-owner-row"><div class="gantt-owner">${escapeHtml(owner)}<small>${all.length} 项任务</small></div><div class="gantt-lanes" style="grid-template-rows:repeat(${count},42px)">${drops}${bars||'<span class="timeline-empty">本周暂无排期</span>'}</div></div>`; }).join(''); $('gantt').innerHTML=header+rows; }
+    function renderTasks(){ const list=[...visibleTasks()].sort((a,b)=>Number(isDone(a))-Number(isDone(b))||Number(isOverdue(b))-Number(isOverdue(a))||a.due.localeCompare(b.due)); $('taskList').innerHTML=list.length?list.map(task=>`<article class="task-card ${isDone(task)?'is-done':''}"><div class="task-main"><button class="task-check ${isDone(task)?'done':''}" data-action="done" data-id="${task.id}" title="标记完成">${isDone(task)?'✓':'·'}</button><div><h3 class="task-title">${escapeHtml(task.title)}</h3><div class="task-meta"><span class="chip owner">${escapeHtml(task.owner)}</span><span class="chip ${taskStatusClass(task)}">${escapeHtml(isDone(task)?'已完成':task.status)}</span><span class="chip ${task.priority==='重要紧急'?'priority-high':'priority-mid'}">${escapeHtml(task.priority)}</span><span class="chip owner">${progress(task)}%</span></div></div><div class="task-due ${isOverdue(task)?'overdue':''}"><strong>${isOverdue(task)?'已逾期':'排期'}</strong>${dateText(task.start)} — ${dateText(task.due)}</div></div><div class="task-details"><div><div class="detail-label">下一步 / 最新进展</div><div class="detail-text">${escapeHtml(task.update||'暂无记录')}</div></div><div><div class="detail-label">完成标准</div><div class="detail-text">${escapeHtml(task.summary||'暂无记录')}</div></div></div><div class="task-footer"><button class="text-btn" data-action="edit" data-id="${task.id}">编辑任务与时间</button><div class="task-footer-right"><button class="text-btn" data-action="copy" data-id="${task.id}">复制下一步</button>${isDone(task)?'<span class="chip status-done">已完成</span>':`<button class="text-btn" data-action="done" data-id="${task.id}">标记完成</button>`}</div></div></article>`).join(''):'<div class="empty">没有符合当前筛选条件的任务。</div>'; }
+    function renderPeople(){ $('peopleList').innerHTML=data.members.map(name=>{const list=data.tasks.filter(task=>task.owner===name);const done=list.filter(isDone).length;const percent=list.length?Math.round(list.reduce((sum,task)=>sum+progress(task),0)/list.length):0;return `<div class="person-row"><span class="avatar">${escapeHtml(ownerInitial(name))}</span><div><strong>${escapeHtml(name)}</strong><small>${done} / ${list.length} 项完成</small><div class="mini-bar"><i style="width:${percent}%"></i></div></div><span class="person-count">${percent}%</span></div>`}).join(''); }
+    function render(){ buildPersonSelect(); renderOverview(); renderFocus(); renderTimeline(); renderTasks(); renderPeople(); }
+    const getTask=id=>data.tasks.find(task=>task.id===id);
+    function fillOwnerOptions(selected){ $('taskOwner').innerHTML=data.members.map(name=>`<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join(''); $('taskOwner').value=selected||data.members[0]; }
+    function openTask(task){ state.editingId=task?.id||null; $('taskDialogTitle').textContent=task?'编辑任务':'新建任务'; $('deleteTaskBtn').style.visibility=task?'visible':'hidden'; $('taskId').value=task?.id||''; $('taskTitle').value=task?.title||''; fillOwnerOptions(task?.owner); $('taskStatus').value=task?.status||'待开始'; $('taskStart').value=task?.start||isoDate(viewWeek); $('taskDue').value=task?.due||isoDate(viewWeek); $('taskProgress').value=String(task?.progress??0); $('taskPriority').value=task?.priority||'重要紧急'; $('taskUpdate').value=task?.update||''; $('taskSummary').value=task?.summary||''; $('taskDialog').showModal(); }
+    function openMembers(){ renderMemberList(); $('memberDialog').showModal(); }
+    function renderMemberList(){ $('memberList').innerHTML=data.members.length?data.members.map(name=>`<div class="member-edit"><input value="${escapeHtml(name)}" data-member-original="${escapeHtml(name)}" maxlength="20" aria-label="成员名称"><button class="btn" data-member-save="${escapeHtml(name)}">保存</button><button class="btn danger" data-member-delete="${escapeHtml(name)}">删除</button></div>`).join(''):'<div class="member-empty">至少保留一位成员。</div>'; }
+    function persist(message){ save(); render(); if(message)toast(message); }
+    function moveTask(task,date){ const duration=diffDays(task.start,task.due); task.start=date; task.due=addDays(date,duration); persist('已更新任务排期'); }
+    document.querySelectorAll('[data-view]').forEach(button=>button.addEventListener('click',()=>{state.view=button.dataset.view;document.querySelectorAll('[data-view]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));render();}));
+    $('personSelect').addEventListener('change',event=>{state.person=event.target.value;render();});
+    $('addTaskBtn').addEventListener('click',()=>openTask()); $('manageMembersBtn').addEventListener('click',openMembers);
+    $('prevWeek').addEventListener('click',()=>{viewWeek=new Date(viewWeek.getFullYear(),viewWeek.getMonth(),viewWeek.getDate()-7,12);renderTimeline();}); $('nextWeek').addEventListener('click',()=>{viewWeek=new Date(viewWeek.getFullYear(),viewWeek.getMonth(),viewWeek.getDate()+7,12);renderTimeline();}); $('thisWeek').addEventListener('click',()=>{viewWeek=mondayOf(new Date());renderTimeline();});
+    $('resetBtn').addEventListener('click',()=>{if(confirm('恢复为初始示例任务？当前浏览器里的修改会被清除。')){data=createSeed();state.person='全部';viewWeek=mondayOf(new Date());persist('已恢复初始示例');}});
+    document.addEventListener('click',event=>{const close=event.target.closest('[data-close]');if(close)$(close.dataset.close).close();});
+    $('taskForm').addEventListener('submit',event=>{event.preventDefault();const start=$('taskStart').value,due=$('taskDue').value;if(due<start){toast('截止日期不能早于开始日期');return;}const payload={id:$('taskId').value||uid(),title:$('taskTitle').value.trim(),owner:$('taskOwner').value,status:$('taskStatus').value,start,due,progress:Number($('taskProgress').value),priority:$('taskPriority').value,update:$('taskUpdate').value.trim(),summary:$('taskSummary').value.trim()};if(payload.status==='已完成')payload.progress=100;const index=data.tasks.findIndex(task=>task.id===payload.id);if(index>=0)data.tasks[index]=payload;else data.tasks.push(payload);$('taskDialog').close();persist(index>=0?'任务已保存':'任务已创建');});
+    $('deleteTaskBtn').addEventListener('click',()=>{const task=getTask(state.editingId);if(task&&confirm(`删除「${task.title}」？`)){data.tasks=data.tasks.filter(item=>item.id!==task.id);$('taskDialog').close();persist('任务已删除');}});
+    $('addMemberBtn').addEventListener('click',()=>{const name=$('newMemberName').value.trim();if(!name){toast('请输入成员名称');return;}if(data.members.includes(name)){toast('该成员已存在');return;}data.members.push(name);$('newMemberName').value='';save();renderMemberList();render();toast('成员已添加');});
+    $('memberList').addEventListener('click',event=>{const saveButton=event.target.closest('[data-member-save]');const deleteButton=event.target.closest('[data-member-delete]');if(saveButton){const oldName=saveButton.dataset.memberSave;const input=document.querySelector(`[data-member-original="${CSS.escape(oldName)}"]`);const newName=input.value.trim();if(!newName||newName===oldName)return;if(data.members.includes(newName)){toast('该成员已存在');return;}data.members=data.members.map(name=>name===oldName?newName:name);data.tasks.forEach(task=>{if(task.owner===oldName)task.owner=newName});if(state.person===oldName)state.person=newName;save();renderMemberList();render();toast('成员名称已更新');}if(deleteButton){const name=deleteButton.dataset.memberDelete;if(data.members.length===1){toast('至少保留一位成员');return;}const replacement=data.members.find(item=>item!==name);if(confirm(`删除成员「${name}」？其任务将转交给「${replacement}」。`)){data.members=data.members.filter(item=>item!==name);data.tasks.forEach(task=>{if(task.owner===name)task.owner=replacement});if(state.person===name)state.person='全部';save();renderMemberList();render();toast('成员已删除，任务已转交');}}});
+    $('taskList').addEventListener('click',async event=>{const button=event.target.closest('[data-action]');if(!button)return;const task=getTask(button.dataset.id);if(!task)return;if(button.dataset.action==='edit')openTask(task);if(button.dataset.action==='done'){const wasDone=isDone(task);task.status=wasDone?'待开始':'已完成';task.progress=wasDone?0:100;persist(wasDone?'任务已恢复':'任务已完成');}if(button.dataset.action==='copy'){try{await navigator.clipboard.writeText(task.update||'');toast('下一步已复制');}catch{toast('当前浏览器不支持自动复制');}}});
+    $('gantt').addEventListener('dragstart',event=>{const bar=event.target.closest('.task-bar');if(!bar)return;state.draggingId=bar.dataset.taskId;event.dataTransfer.effectAllowed='move';event.dataTransfer.setData('text/plain',state.draggingId);}); $('gantt').addEventListener('dragend',()=>{state.draggingId=null;document.querySelectorAll('.timeline-drop').forEach(node=>node.classList.remove('drag-over'));}); $('gantt').addEventListener('dragover',event=>{const drop=event.target.closest('.timeline-drop');if(!drop||!state.draggingId)return;event.preventDefault();drop.classList.add('drag-over');}); $('gantt').addEventListener('dragleave',event=>{event.target.closest('.timeline-drop')?.classList.remove('drag-over');}); $('gantt').addEventListener('drop',event=>{const drop=event.target.closest('.timeline-drop');if(!drop||!state.draggingId)return;event.preventDefault();const task=getTask(state.draggingId);if(task)moveTask(task,drop.dataset.dropDate);state.draggingId=null;});
+    $('gantt').addEventListener('pointerdown',event=>{const handle=event.target.closest('[data-resize-id]');if(!handle)return;event.preventDefault();event.stopPropagation();const bar=handle.closest('.task-bar');state.resizing={id:handle.dataset.resizeId,startX:event.clientX,initialDue:getTask(handle.dataset.resizeId).due,bar};bar.setPointerCapture?.(event.pointerId);}); window.addEventListener('pointermove',event=>{if(!state.resizing)return;const grid=state.resizing.bar.closest('.gantt-lanes');const cellWidth=grid.getBoundingClientRect().width/7;const offset=Math.round((event.clientX-state.resizing.startX)/cellWidth);const task=getTask(state.resizing.id);const next=addDays(state.resizing.initialDue,offset);if(next>=task.start){task.due=next;renderTimeline();}});window.addEventListener('pointerup',()=>{if(!state.resizing)return;state.resizing=null;save();render();toast('已调整任务跨度');});
+    $('todayStamp').textContent=new Intl.DateTimeFormat('zh-CN',{weekday:'short',month:'long',day:'numeric'}).format(new Date()); render();
   </script>
 </body>
 </html>
